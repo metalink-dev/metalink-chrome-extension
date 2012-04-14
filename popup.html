@@ -1,0 +1,80 @@
+<!--
+//	Metalink Downloader-Chrome Extension
+//	Copyright (C) 2012  
+//	Devloped by :	Sundaram Ananthanarayanan
+
+//	This program is free software: you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation, either version 3 of the License, or
+//	(at your option) any later version.
+
+//	This program is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+
+//	You should have received a copy of the GNU General Public License
+//	along with this program.  If not, see <http://www.gnu.org/licenses/>
+-->
+<!DOCTYPE html>
+	<head>
+		<script src='popup.js'></script>
+		<style type="text/css">
+		#menu 
+		{
+			position: 	fixed;
+			top:		-1px;
+			right:		0;
+			left:		0;
+			height:		60px;
+			z-index: 	101;
+			background-color:#FAF7F7;
+			border-bottom-width: 1px;
+			border-bottom-style: solid;
+			border-bottom-color: #CFCACA;
+		}
+		#submenu
+		{
+			margin-top:	65px;
+			display:	block;
+			width:		750px;
+			font-size: 	13px;
+		}
+		#filter
+		{
+			margin-left:	5%;
+			margin-top:	6px;
+		}
+		#regex
+		{
+			margin-left:	5%;
+		}
+		#download_0
+		{
+			margin-left:	20%;
+		}
+		body
+		{
+			overflow-x:hidden;
+			font-family: "helvetica neue",arial,sans-serif;
+		}
+		</style>
+	</head>
+	<body >
+		<div id=menu>
+			<input type=text id=filter placeholder=Search style='width:90%;'><br />
+			<input type=checkbox id=regex>
+			<label for=regex>RegEx</label>
+			<button id=download_0>Download Selected Metalinks!</button>
+		</div>
+		<div id=submenu>
+			<table id=links>
+				<tr>
+					<th><input type=checkbox checked id=toggle_all></th>
+					<th align=left>URL</th>
+				</tr>
+			</table>
+		</div>
+		
+	</body>
+</html>

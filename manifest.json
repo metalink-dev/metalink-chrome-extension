@@ -1,0 +1,30 @@
+//	Metalink Downloader-Chrome Extension
+//	Copyright (C) 2012  
+//	Devloped by :	Sundaram Ananthanarayanan
+
+//	This program is free software: you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation, either version 3 of the License, or
+//	(at your option) any later version.
+
+//	This program is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+
+//	You should have received a copy of the GNU General Public License
+//	along with this program.  If not, see <http://www.gnu.org/licenses/>
+{
+  "name": "AllMetalinksDownloader",
+  "description": "Download Metalinks from a Page",
+  "version": "0.1",
+  "minimum_chrome_version": "16.0.884",
+  "permissions": [
+    "experimental", "tabs", "http://*/*", "https://*/*"
+  ],
+  "browser_action": {
+    "default_icon": "icon.png",
+    "default_popup": "popup.html"
+  },
+  "manifest_version": 2
+}
