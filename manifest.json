@@ -15,7 +15,7 @@
 //	You should have received a copy of the GNU General Public License
 //	along with this program.  If not, see <http://www.gnu.org/licenses/>
 {
-  "name": "AllMetalinksDownloader",
+  "name": "Metalink Downloader",
   "description": "Download Metalinks from a Page",
   "version": "0.1",
   "minimum_chrome_version": "16.0.884",
@@ -24,7 +24,12 @@
   ],
   "browser_action": {
     "default_icon": "icon.png",
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_title": "Metalink Downloader"
   },
+  "icons": {
+      "128": 	"icon.png",
+      "48": 	"icon.png"
+   },
   "manifest_version": 2
 }
