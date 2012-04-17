@@ -1,6 +1,6 @@
 //	Metalink Downloader-Chrome Extension
 //	Copyright (C) 2012  
-//	Devloped by :	Sundaram Ananthanarayanan
+//	Developed by :	Sundaram Ananthanarayanan, Anthony Bryan
 
 //	This program is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ links.sort();
 var kBadPrefix = 'javascript';
 for (var i = 0; i < links.length;) 
 {
-	if (((i > 0) && (links[i] == links[i - 1])) ||(links[i] == '') ||(kBadPrefix == links[i].toLowerCase().substr(0, kBadPrefix.length))|| (links[i].substr(links[i].length-8)!='metalink'))
+	if (((i > 0) && (links[i] == links[i - 1])) ||(links[i] == '') ||(kBadPrefix == links[i].toLowerCase().substr(0, kBadPrefix.length))|| ((links[i].substr(links[i].length-9)!='.metalink')&&(links[i].substr(links[i].length-6)!='.meta4')))
 	{
 		links.splice(i, 1);
 	}
