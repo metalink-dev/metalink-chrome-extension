@@ -1,6 +1,6 @@
 //	Metalink Downloader-Chrome Extension
 //	Copyright (C) 2012  
-//	Devloped by :	Sundaram Ananthanarayanan
+//	Developed by :	Sundaram Ananthanarayanan, Anthony Bryan
 
 //	This program is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ var allLinks = [];
 var visibleLinks = [];
 var fileContents = "";
 var filesize = -1;
+var fileName = "";
 var readByteAt = function(i)
 {
 	var temp=fileContents.charCodeAt(i) & 0xff;
@@ -252,12 +253,34 @@ function compareResults(a,b)
 }
 function parseXML()
 {
-	var x = req.responseXML.getElementsByTagName("resources");
-	for(i=0;i<(x[0].childNodes.length-1)/2;i++)
+	var xml=req.responseXML;
+	if(fileName.substr(fileName.length-6)=='.meta4')
 	{
-		var k=x[0].childNodes[i*2+1].firstChild.nodeValue;
-		console.log(k);
-		chrome.experimental.downloads.download({url: k,saveAs:true},function(id) {});
+		var x = xml.getElementsByTagName("file");
+		for(j=0;j<x.length;j++)
+		{
+			for(i=0;i<(x[j].childNodes.length-1)/2;i++)
+			{
+				var v=x[j].childNodes[i*2+1];
+				if(v.localName=="url")
+				{
+					r=v.firstChild.nodeValue;
+					console.log(r);
+					chrome.experimental.downloads.download({url: r,saveAs:true},function(id) {});
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		var x = xml.getElementsByTagName("resources");
+		for(j=0;j<x.length;j++)
+		{
+			var k=x[j].childNodes[1].firstChild.nodeValue;
+			console.log(k);
+			chrome.experimental.downloads.download({url: k,saveAs:true},function(id) {});
+		}
 	}
 }
 function downloadCheckedLinks() 
@@ -266,6 +289,7 @@ function downloadCheckedLinks()
 	{
 	    	if (document.getElementById('check' + i).checked) 
 		{
+			fileName=visibleLinks[i];
 			req.open("GET",visibleLinks[i],true);
 			req.onload = parseXML;
 			req.send(null);
