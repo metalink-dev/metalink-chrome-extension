@@ -1,0 +1,13 @@
+#summary One-sentence summary of this page.
+
+= Introduction =
+
+Process for new releases.
+
+= Details =
+
+  * *Update version number* in manifest.json.
+  * *Pack extension.*
+  * *Update updates.xml*: Download, edit version in local, delete remote, upload new file.
+  * *Check file size.* It should be around 50k. Make sure ".svn" directory is not included.
+  * *Test autoupdate within Chrome.* Make sure appid is correct.
