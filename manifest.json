@@ -31,6 +31,7 @@
     "default_popup": "popup.html",
     "default_title": "Metalink Downloader"
   },
+  "options_page": "options.html",
   "icons": {
       "128": 	"icon.png",
       "48": 	"icon.png"

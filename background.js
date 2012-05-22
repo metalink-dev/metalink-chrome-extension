@@ -22,7 +22,10 @@ var xhr2 = new XMLHttpRequest();
 function parseXML2()
 {
 	var xml=req2.responseXML;
-	//console.log(xml);
+	if(localStorage.metalinkSaveAsEnabled=="true")
+		saveasOption=true;
+	else
+		saveasOption=false;
 	if(fileName.substr(fileName.length-6)=='.meta4')
 	{
 		var x = xml.getElementsByTagName("file");
@@ -34,8 +37,8 @@ function parseXML2()
 				if(v.localName=="url")
 				{
 					r=v.firstChild.nodeValue;
-					console.log(r);
-					chrome.experimental.downloads.download({url: r,saveAs:true},function(id) {});
+					//console.log(r);
+					chrome.experimental.downloads.download({url: r,saveAs:saveasOption},function(id) {});
 					break;
 				}
 			}
@@ -44,6 +47,7 @@ function parseXML2()
 	else
 	{
 		var x = xml.getElementsByTagName("resources");
+		console.log(localStorage.metalink);
 		for(j=0;j<x.length;j++)
 		{
 			for(i=0;i<(x[j].childNodes.length-1)/2;i++)
@@ -52,8 +56,8 @@ function parseXML2()
 				if(v.localName=="url")
 				{
 					var k=v.firstChild.nodeValue;
-					console.log(k);
-					chrome.experimental.downloads.download({url: k,saveAs:true},function(id) {});
+					//console.log(k);
+					chrome.experimental.downloads.download({url: k,saveAs:saveasOption},function(id) {});
 					break;
 				}
 			}
