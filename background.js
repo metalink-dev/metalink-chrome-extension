@@ -17,10 +17,12 @@
 //	along with this program.  If not, see <http://www.gnu.org/licenses/>
 -->
 var req2 = new XMLHttpRequest();
+req2.overrideMimeType('text/xml');
 var xhr2 = new XMLHttpRequest();
 function parseXML2()
 {
 	var xml=req2.responseXML;
+	//console.log(xml);
 	if(fileName.substr(fileName.length-6)=='.meta4')
 	{
 		var x = xml.getElementsByTagName("file");
@@ -44,9 +46,17 @@ function parseXML2()
 		var x = xml.getElementsByTagName("resources");
 		for(j=0;j<x.length;j++)
 		{
-			var k=x[j].childNodes[1].firstChild.nodeValue;
-			console.log(k);
-			chrome.experimental.downloads.download({url: k,saveAs:true},function(id) {});
+			for(i=0;i<(x[j].childNodes.length-1)/2;i++)
+			{
+				var v=x[j].childNodes[i*2+1];
+				if(v.localName=="url")
+				{
+					var k=v.firstChild.nodeValue;
+					console.log(k);
+					chrome.experimental.downloads.download({url: k,saveAs:true},function(id) {});
+					break;
+				}
+			}
 		}
 	}
 }
@@ -63,7 +73,7 @@ chrome.webRequest.onBeforeRequest.addListener
 	},
 	// filters
 	{
-    		urls: ["http://*/*.metalink",]
+    		urls: ["http://*/*.metalink","http://*/*.meta4"]
 	},
   	// extraInfoSpec
   	["blocking"]
