@@ -1,0 +1,93 @@
+#versionInfo {
+  margin-top: 12px;
+  font-size: 10px;
+}
+body.options {
+    background: #f2f5f6;
+    width: auto !important;
+}
+
+body.options h2 {
+    display: block;
+    text-align: center;
+    margin: 4px 0px;
+    font-size: 16pt;
+    font-weight: bold;
+    color: #333;
+}
+
+#submitMessage {
+    padding: 2px;
+    font-weight: bold;
+}
+
+#submitMessage.success {
+    background: yellow;
+    color: black;
+}
+
+#submitMessage.error {
+    background: red;
+    color: white;
+}
+
+#optionsHeader {
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.copyright {
+    text-align: center;
+    padding-bottom: 20px;
+}
+
+select {
+    width: 200px;
+}
+
+label {
+  padding-right: 10px;
+}
+
+.optionsDescription {
+  color: #696969;
+  font-size: 9pt;
+}
+
+.radioGroup label {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+input[type=submit], button {
+  color: black;
+}
+input[disabled], button[disabled] {
+  color: #696969;
+}
+
+/**
+ * OptionsView
+ */
+#optionsView {
+    width: 600px;
+}
+
+input[type=checkbox] {
+  float: left;
+  margin-right: 0.66em;
+  margin-bottom: 2.5em;
+}
+
+.vignette {
+    background: white;
+    margin: 40px auto 20px auto;
+    padding: 6px;
+    -webkit-border-radius: 6px;
+    -webkit-box-shadow: 2px 2px 6px 1px #999;
+}
+
+.vignetteContent {
+    padding: 18px;
+}
+
