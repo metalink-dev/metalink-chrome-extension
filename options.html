@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="css/evernote.css" />
+		<link rel="stylesheet" type="text/css" href="css/forms.css" />
+		<link rel="stylesheet" type="text/css" href="css/options.css" />
+		<script type="text/javascript" src="js/OptionsController.js"></script>
+		<title message="options_title">Options</title>
+	</head>
+	<body class="options">
+		<div id="optionsView" class="vignette">
+			<div class="vignetteContent">
+				<div id="optionsHeader"><a href="http://www.metalinker.org/"><img id="logo" src="images/metalink_newlogo_only.png"/></a></div>
+				<form name="optionsForm" class="optionsForm" action="#">
+				<div id="optionsContainer">
+					<h2 message="options_title">Options</h2>
+					<table class="simpleOptions">
+						<tr id="notificationsContainer">
+							<td>
+							<label for="clipNotificationEnabled" message="options_clipNotificationEnabled">Enable SaveAs</label>
+							</td>
+							<td>
+							<input type="checkbox" id="metalinkSaveAsEnabled" name="metalinkSaveAsEnabled" />
+							<label for="metalinkSaveAsEnabled" class='optionsDescription'  message="options_clipNotificationEnabledDescription">When enabled, you will be prompted to choose the download location for the file to be downloaded. Save As dialogs make it easier for you to save the metalinks at relevant locations.</label>
+							</td>
+						</tr>
+					</table>
+				</div>
+				<div>
+					<a href="http://metalinker.org/" message="options_eventLogLink">Metalinks</a><br>
+						<span class="optionsDescription" message="options_eventLogDescription">If you are in need of support or want to report bugs, you may post them <a href="http://code.google.com/p/metalink-chrome-extension/issues/list">here</a>.</span>
+				</div>
+				<div id="versionInfo" message="options_buildId">Version Number: 0.2.1</div>
+				</form>
+			</div>
+		</div>
+		<div class="copyright" message="copyright">@ 2012, Metalink Foundation.</div>
+	</body>
+</html>
