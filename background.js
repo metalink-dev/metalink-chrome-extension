@@ -47,13 +47,12 @@ function parseXML2()
 	else
 	{
 		var x = xml.getElementsByTagName("resources");
-		console.log(localStorage.metalink);
 		for(j=0;j<x.length;j++)
 		{
 			for(i=0;i<(x[j].childNodes.length-1)/2;i++)
 			{
 				var v=x[j].childNodes[i*2+1];
-				if(v.localName=="url")
+				if(v.localName=="url"&&(v.getAttribute('type')=="http"||v.getAttribute('type')=="ftp"))
 				{
 					var k=v.firstChild.nodeValue;
 					//console.log(k);
