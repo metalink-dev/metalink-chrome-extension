@@ -6,6 +6,9 @@
 Current features of Metalink Downloader
   * Supports .meta4 (RFC 5854) and .metalink files.
   * Extension autoupdate.
+  * Ability to catch metalinks (both .meta4 and .metalink) when they are clicked upon in the browser.
+  * Takes in user preferences to save files automatically to the default download locations.
+  * Ability to save user preferences in local storage.
 
 
 = TODO =
