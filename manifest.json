@@ -17,24 +17,25 @@
 {
   "name": "Metalink Downloader",
   "description": "Download Metalinks from a Page",
-  "version": "0.2",
+  "version": "0.3",
   "update_url": "http://metalink-chrome-extension.googlecode.com/files/updates.xml",
   "minimum_chrome_version": "16.0.884",
   "permissions": [
-    "tabs","webRequest", "webRequestBlocking","experimental", "tabs", "http://*/*", "https://*/*"
+   "storage", "notifications","webRequest", "webRequestBlocking","experimental", "tabs", "http://*/*", "https://*/*"
   ],
    "background": {
-    "scripts": ["background.js"]
+     "scripts": ["background.js"]
   },
   "browser_action": {
-    "default_icon": "icon.png",
+    "default_icon": "images/icon.png",
     "default_popup": "popup.html",
     "default_title": "Metalink Downloader"
   },
-  "options_page": "options.html",
+
+//  "options_page": "options.html",
   "icons": {
-      "128": 	"icon.png",
-      "48": 	"icon.png"
+      "128": 	"images/icon.png",
+      "48": 	"images/icon.png"
    },
   "manifest_version": 2
 }
