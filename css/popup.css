@@ -1,0 +1,97 @@
+body {
+    background:#fff;
+    color:#000;
+    font-family: "helvetica neue",arial,sans-serif;
+    font-size:14px;
+    padding:3px;
+}
+
+a {
+    color:#cc0000;
+    text-decoration:none;
+}
+
+a:hover{
+    color:#000;
+    text-decoration:underline;
+}
+/*
+ *-----------------------------------------------------------------------
+ * PROGRESS BAR
+ *-----------------------------------------------------------------------
+*/
+progress {
+	padding:3px 3px 3px 3px;
+	width:394px;
+	height:30px;
+}
+
+/*
+ *-----------------------------------------------------------------------
+ * HEADER
+ *-----------------------------------------------------------------------
+*/
+
+#header {
+    border-bottom:1px solid #e5e5e5;
+    margin-bottom:3px;
+    overflow:hidden;
+    padding:3px 3px 4px 3px;
+    width:394px;
+}
+
+#logo {
+    float:left;
+}
+
+#close-button{
+    float:right;
+    margin:6px 0;
+}
+
+#close-button a{
+    color:#b2bbbf;
+    font-size:11px;
+}
+
+#close-button a:hover{
+    color:#000;
+}
+
+/*
+ *-----------------------------------------------------------------------
+ * BODY LAYOUT
+ *-----------------------------------------------------------------------
+*/
+
+#body {
+    overflow:hidden;
+    width:400px;
+    border-bottom:1px solid #e5e5e5;
+    margin-bottom:3px;
+    padding:3px 3px 4px 3px;
+}
+
+#download
+{
+	line-height:150%;
+	padding:3px 3px 4px 3px;
+	border-bottom:1px solid #e5e5e5;
+	overflow:hidden;
+	text-align:center;
+}
+#count
+{
+	padding:3px 3px 4px 3px;
+	-webkit-border-radius: 8px;
+	text-align:center;
+	font-weight:bold;
+}
+#size
+{
+	float:left;
+}
+#status
+{
+	float:right;
+}
