@@ -154,7 +154,7 @@ function Options(type,title,content,icon)
 function createNotificationInstance(options)
 {
 	if (options.type == 'simple') {
-		return window.webkitNotifications.createNotification('http://www.metalinker.org/images/metalink_logo.png', options.title, options.content);
+		return window.webkitNotifications.createNotification(options.icon, options.title, options.content);
 	}
 	else if (options.type == 'html') {
 		return window.webkitNotifications.createHTMLNotification(options.url);
@@ -183,7 +183,7 @@ chrome.tabs.onActivated.addListener
 );
 function getDownloadMessage(url)
 {
-	return 'The Metalink is being downloaded by the Extension.';
+	return 'The Metalink is being downloaded by the Extension. Click on the extension icon to track the progress of the download.';
 }
 function startDownload(url)
 {
@@ -255,7 +255,7 @@ chrome.webRequest.onBeforeRequest.addListener
 	function(info)
 	{
 		fileName=info.url;
-		//createNotificationInstance({ type: 'simple', icon:'images/icon.png',title:'Download Initiated',content:getDownloadMessage(fileName)}).show();
+		createNotificationInstance({ type: 'simple', icon:'http://metalinker.org/images/favicon.ico',title:'Download Initiated',content:getDownloadMessage(fileName)}).show();
 		startDownload(fileName);
 		return { redirectUrl: currentTabURL }
 	},

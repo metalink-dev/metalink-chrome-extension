@@ -57,9 +57,9 @@ function verification()
 }
 function deleteFile(fileName,fileSize)
 {
-	var fs = requestFileSystemSync(TEMPORARY, fileSize);
 	try
 	{
+		var fs = requestFileSystemSync(TEMPORARY, fileSize);
 		var fileEntry = fs.root.getFile(fileName, {create: false});
 		fileEntry.remove();
 	}catch(e){	logMessage('The file Does not Exist in Temporary Directory');	}
@@ -111,13 +111,6 @@ function downloadFile(file)
 			verification();
 			var buffer = new Uint8Array(this.response);
 			var computedHash;
-			switch(file.hash_type)
-			{
-				case 'sha1':	computedHash=SHA1(buffer);break;
-				case 'sha256':	computedHash=SHA256(buffer);break;
-				case 'md5':	computedHash=MD5(buffer);break;
-				default:	computedHash=null;
-			};
 			if(file.size!=null)
 				if(file.size!=buffer.length)
 				{
@@ -127,8 +120,21 @@ function downloadFile(file)
 					downloadFile(file);
 					return;
 				}
+
+			switch(file.hash_type)
+			{
+				case 'sha1':	computedHash=SHA1(buffer);break;
+				case 'sha-1':	computedHash=SHA1(buffer);break;
+				case 'sha256':	computedHash=SHA256(buffer);break;
+				case 'sha-256':	computedHash=SHA256(buffer);break;
+				case 'md5':	computedHash=MD5(buffer);break;
+				case 'md-5':	computedHash=MD5(buffer);break;
+				default:	computedHash=null;
+			};
 			if(file.hash_type)
 			{
+				logMessage(file.hash);
+				logMessage(computedHash);
 				if(computedHash==file.hash)
 					logMessage('Verification Successful');
 				else
