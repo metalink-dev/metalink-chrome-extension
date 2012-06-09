@@ -210,7 +210,7 @@ function startDownload(url)
 				switch(data.cmd)
 				{
 					case 'DOWNLOADING':
-						console.log(currentFileIndex+' '+data.value);
+						//console.log(currentFileIndex+' '+data.value);
 						object.percent=parseInt(data.value);
 						object.status='Downloading';
 						break;
