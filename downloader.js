@@ -35,6 +35,10 @@ function completeCommand()
 	self.postMessage({'cmd':'COMPLETE'});
 	self.close();
 }
+function restartState()
+{
+	self.postMessage({'cmd':'RESTART'});
+}
 function logMessage(msg)
 {
 	self.postMessage({'cmd':'LOG', 'value':msg});
@@ -91,6 +95,7 @@ function getURL(urls,required)
 }
 function downloadFile(file)
 {
+	updateProgress(0);
 	url=getURL(file.urls,currentURL);
 	if(url==-1)
 		failedState("Download Failed");
@@ -113,6 +118,15 @@ function downloadFile(file)
 				case 'md5':	computedHash=MD5(buffer);break;
 				default:	computedHash=null;
 			};
+			if(file.size!=null)
+				if(file.size!=buffer.length)
+				{
+					logMessage('Verification Failed. Size Mismatch Error. Restarting download from another URL');
+					currentURL+=1;
+					restartState();
+					downloadFile(file);
+					return;
+				}
 			if(file.hash_type)
 			{
 				if(computedHash==file.hash)
@@ -121,7 +135,9 @@ function downloadFile(file)
 				{
 					logMessage('Verification Failed. Restarting download from another URL');
 					currentURL+=1;
+					restartState();
 					downloadFile(file);
+					return;
 				}
 			}
 			else
@@ -154,6 +170,7 @@ function downloadFile(file)
 			logMessage('Failing back to the next Mirror');
 			currentURL++;
 			downloadFile(file);
+			return;
 		}
 		xhr.send();
 	}
