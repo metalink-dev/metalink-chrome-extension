@@ -57,7 +57,10 @@ function extractContents(contents, type)
 					file.size=v.firstChild.nodeValue;
 				if(v.localName=="resources")
 					for(k=1;k<v.childNodes.length;k+=2)
-						urls.push(v.childNodes[k].firstChild.nodeValue.trim());
+						if(v.childNodes[k].localName=="url")
+							if(v.childNodes[k].getAttribute("type")=="http")
+								urls.push(v.childNodes[k].firstChild.nodeValue.trim());
+
 				if(v.localName=="verification")
 					for(k=1;k<v.childNodes.length;k+=2)
 					{
@@ -119,6 +122,7 @@ function extractContents(contents, type)
 			//displayParameters(files);
 		}
 	}
+	//displayParameters(files);
 	return files;
 }
 function getMetalinkFile(url)
@@ -133,11 +137,11 @@ function getMetalinkFile(url)
 			type="meta4";
 		else
 			type="metalink";
-		return extractContents(req.responseXML,"metalink");
+		return extractContents(req.responseXML,type);
 	}
 	catch(e)
 	{
-		return "XHR Error " + e.toString();
+		console.log("XHR Error " + e.toString());
 	}
 }
 function Options(type,title,content,icon)
@@ -183,6 +187,7 @@ function getDownloadMessage(url)
 }
 function startDownload(url)
 {
+	//console.log(url);
 	files=getMetalinkFile(url);
 	for(i=0;i<files.length;i++)
 	{
@@ -232,6 +237,11 @@ function startDownload(url)
 						break;
 					case 'SIZE':
 						object.size=data.value;
+						break;
+					case 'RESTART':
+						object.percent=0;
+						object.status="Restarting"
+						console.log('Restarting Download');
 						break;
 					default:
 						console.log(data.cmd);

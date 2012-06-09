@@ -27,7 +27,7 @@ $(document).ready
 		function updateDiv(index,status,progress,fileSize)
 		{
 			div=elements[index];
-			if(status=='Verifying')
+			if(status=='Verifying'||status=='Restarting')
 				$("progress",div).removeAttr('value');
 			else
 				$("progress",div).attr('value',progress);
@@ -38,7 +38,7 @@ $(document).ready
 		function createDiv(fileName,fileSize,percent,status)
 		{
 			var e=$('<progress max="100" value="'+percent+'"></progress>');
-			if(status=='Verifying')
+			if(status=='Verifying'||status=='Restarting')
 				e.removeAttr('value');
 			var span=$('<span id="size">Size : '+(fileSize/(1024*1024)).toFixed(2)+' MB	</span><span id="percent">'+percent+'%</span><span id="status">'+status+'</span>');
 			var div=$('<div id="download">'+fileName+'</div>');
