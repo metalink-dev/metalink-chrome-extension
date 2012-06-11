@@ -151,6 +151,7 @@ function Options(type,title,content,icon)
 	this.content=content;
 	this.icon=icon;
 }
+/*
 function createNotificationInstance(options)
 {
 	if (options.type == 'simple') {
@@ -160,6 +161,30 @@ function createNotificationInstance(options)
 		return window.webkitNotifications.createHTMLNotification(options.url);
 	}
 }
+*/
+function sendNotification(image, title, message, timeout, showOnFocus)
+{
+	// Default values for optional params
+	timeout = (typeof timeout !== 'undefined') ? timeout : 0;
+	showOnFocus = (typeof showOnFocus !== 'undefined') ? showOnFocus : true;
+
+	// Check if the browser window is focused
+	var isWindowFocused = document.querySelector(":focus") === null ? false : true;
+  
+	// Check if we should send the notification based on the showOnFocus parameter
+	var shouldNotify = !isWindowFocused || isWindowFocused && showOnFocus;
+  
+	if (window.webkitNotifications && shouldNotify) 
+	{
+		// Create the notification object
+		var notification = window.webkitNotifications.createNotification(image, title, message);
+	    
+		// Display the notification
+		notification.show();
+	    
+		if (timeout > 0) {setTimeout(function(){notification.cancel()}, timeout);}
+	}
+};
 function printCurrentDownloads(array)
 {
 	for(i=0;i<array.length;i++)
@@ -255,7 +280,7 @@ chrome.webRequest.onBeforeRequest.addListener
 	function(info)
 	{
 		fileName=info.url;
-		createNotificationInstance({ type: 'simple', icon:'http://metalinker.org/images/favicon.ico',title:'Download Initiated',content:getDownloadMessage(fileName)}).show();
+		sendNotification('http://metalinker.org/images/favicon.ico', 'Download Initiated', getDownloadMessage(fileName), 10000, true);
 		startDownload(fileName);
 		return { redirectUrl: currentTabURL }
 	},
