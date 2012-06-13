@@ -133,8 +133,8 @@ function downloadFile(file)
 			};
 			if(file.hash_type)
 			{
-				logMessage(file.hash);
-				logMessage(computedHash);
+				//logMessage(file.hash);
+				//logMessage(computedHash);
 				if(computedHash==file.hash)
 					logMessage('Verification Successful');
 				else

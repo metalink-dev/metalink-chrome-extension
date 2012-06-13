@@ -31,7 +31,13 @@
     "default_popup": "popup.html",
     "default_title": "Metalink Downloader"
   },
-
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["js/jquery.min.js", "js/content_script.js"],
+      "run_at": "document_end"
+    }
+  ],
 //  "options_page": "options.html",
   "icons": {
       "128": 	"images/icon.png",
