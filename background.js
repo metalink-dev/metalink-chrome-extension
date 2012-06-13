@@ -142,6 +142,7 @@ function getMetalinkFile(url)
 	catch(e)
 	{
 		console.log("XHR Error " + e.toString());
+		return -1;
 	}
 }
 function Options(type,title,content,icon)
@@ -191,6 +192,7 @@ function printCurrentDownloads(array)
 		console.log(array[i]);
 	return;
 }
+/*
 chrome.tabs.onUpdated.addListener
 (
 	function(tabId,changeInfo,tab){
@@ -206,6 +208,7 @@ chrome.tabs.onActivated.addListener
 		);
 	}
 );
+*/
 function getDownloadMessage(url)
 {
 	return 'The Metalink is being downloaded by the Extension. Click on the extension icon to track the progress of the download.';
@@ -214,6 +217,9 @@ function startDownload(url)
 {
 	//console.log(url);
 	files=getMetalinkFile(url);
+	if(files==-1)
+		return;
+	sendNotification('http://metalinker.org/images/favicon.ico', 'Download Initiated', getDownloadMessage(fileName), 10000, true);
 	for(i=0;i<files.length;i++)
 	{
 		var currentFileIndex=currentIndex;
@@ -275,17 +281,26 @@ function startDownload(url)
 			}, false);
 	}
 }
+
 chrome.webRequest.onBeforeRequest.addListener
 (
 	function(info)
 	{
 		fileName=info.url;
-		sendNotification('http://metalinker.org/images/favicon.ico', 'Download Initiated', getDownloadMessage(fileName), 10000, true);
 		startDownload(fileName);
-		return { redirectUrl: currentTabURL }
+		return { redirectUrl: "about:blank" }
 	},
 	{
     		urls: ["http://*/*.metalink","http://*/*.meta4","https://*/*.metalink","https://*/*.meta4"]
 	},
   	["blocking"]
+);
+chrome.extension.onRequest.addListener
+(
+	function(info, sender, callback) 
+	{
+		fileName=info.url;
+		sendNotification('http://metalinker.org/images/favicon.ico', 'Download Initiated', getDownloadMessage(fileName), 10000, true);
+		startDownload(fileName);
+ 	}
 );
