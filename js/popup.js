@@ -32,7 +32,7 @@ $(document).ready
 			else
 				$("progress",div).attr('value',progress);
 			$("#status",div).text(status);
-			$("#percent",div).text(progress+" %");
+			$("#percent",div).text(progress+"%");
 			$('#size',div).text('Size : '+(fileSize/(1024*1024)).toFixed(2)+' MB');
 		}
 		function createDiv(fileName,fileSize,percent,status)
