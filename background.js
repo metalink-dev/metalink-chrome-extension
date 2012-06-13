@@ -300,7 +300,6 @@ chrome.extension.onRequest.addListener
 	function(info, sender, callback) 
 	{
 		fileName=info.url;
-		sendNotification('http://metalinker.org/images/favicon.ico', 'Download Initiated', getDownloadMessage(fileName), 10000, true);
 		startDownload(fileName);
  	}
 );
