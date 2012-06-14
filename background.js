@@ -19,6 +19,13 @@
 var objects = [];
 var currentIndex=0;
 var currentTabURL = "";
+const DOWNLOADS_KEY="PREVIOUS_DOWNLOADS";
+function initializeObjects()
+{
+	if(localStorage.getItem(DOWNLOADS_KEY)!=undefined)
+		objects=JSON.parse(localStorage.getItem(DOWNLOADS_KEY));
+	//console.log(localStorage.getItem(DOWNLOADS_KEY).length);
+}
 String.prototype.trim = function() {
 	return this.replace(/^\s+|\s+$/g,"");
 }
@@ -119,7 +126,6 @@ function extractContents(contents, type)
 			}
 			file.urls=urls;
 			files.push(file);
-			//displayParameters(files);
 		}
 	}
 	//displayParameters(files);
@@ -209,6 +215,16 @@ chrome.tabs.onActivated.addListener
 	}
 );
 */
+function saveItem(object)
+{
+	array=JSON.parse(localStorage.getItem(DOWNLOADS_KEY));
+	if(array==undefined)
+		array=new Array;
+	array.push(object);
+	localStorage.setItem(DOWNLOADS_KEY,JSON.stringify(array));
+	//array=localStorage.getItem(DOWNLOADS_KEY);
+	//console.log(array.length);
+}
 function getDownloadMessage(url)
 {
 	return 'The Metalink is being downloaded by the Extension. Click on the extension icon to track the progress of the download.';
@@ -251,6 +267,7 @@ function startDownload(url)
 						console.log('File Download Completed');
 						object.status='Completed';
 						object.percent=100;
+						saveItem(object);
 						break;
 					case 'SAVE':
 						console.log('save requested from '+data.value);
@@ -281,7 +298,7 @@ function startDownload(url)
 			}, false);
 	}
 }
-
+initializeObjects();
 chrome.webRequest.onBeforeRequest.addListener
 (
 	function(info)
