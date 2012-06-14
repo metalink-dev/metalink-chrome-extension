@@ -25,7 +25,6 @@ function initializeObjects()
 	if(localStorage.getItem(DOWNLOADS_KEY)!=undefined)
 		objects=JSON.parse(localStorage.getItem(DOWNLOADS_KEY));
 	currentIndex=objects.length;
-	//console.log(localStorage.getItem(DOWNLOADS_KEY).length);
 }
 String.prototype.trim = function() {
 	return this.replace(/^\s+|\s+$/g,"");
@@ -223,8 +222,6 @@ function saveItem(object)
 		array=new Array;
 	array.push(object);
 	localStorage.setItem(DOWNLOADS_KEY,JSON.stringify(array));
-	//array=localStorage.getItem(DOWNLOADS_KEY);
-	//console.log(array.length);
 }
 function getDownloadMessage(url)
 {
@@ -232,7 +229,6 @@ function getDownloadMessage(url)
 }
 function startDownload(url)
 {
-	//console.log(url);
 	files=getMetalinkFile(url);
 	if(files==-1)
 		return;
@@ -248,6 +244,7 @@ function startDownload(url)
 			object.size=files[i].size;
 		else
 			object.size="Unknown";
+		object.clear=false;
 		object.status='Downloading';	object.percent=0;
 		object.fileName=files[i].fileName;
 		objects[currentFileIndex]=object;
@@ -258,7 +255,7 @@ function startDownload(url)
 				switch(data.cmd)
 				{
 					case 'DOWNLOADING':
-						//console.log(currentFileIndex+' '+data.value);
+						//console.log(data.value);
 						object.percent=parseInt(data.value);
 						object.status='Downloading';
 						break;
@@ -317,7 +314,13 @@ chrome.extension.onRequest.addListener
 (
 	function(info, sender, callback) 
 	{
-		fileName=info.url;
-		startDownload(fileName);
+		switch(info.cmd)
+		{
+			case 'DOWNLOAD':fileName=info.url;
+					startDownload(fileName);
+					break;
+			case 'CLEAR':	localStorage.clear();
+					break;
+		};
  	}
 );

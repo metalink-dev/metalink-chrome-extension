@@ -5,7 +5,7 @@ function checkMetalink()
 	var metalink=(link.substr(link.length-9)==".metalink");
 	if(meta4||metalink)
 	{
-		chrome.extension.sendRequest({url: link});
+		chrome.extension.sendRequest({url: link, cmd:"DOWNLOAD"});
 		return false;
 	}
 	return true;

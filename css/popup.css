@@ -70,6 +70,7 @@ progress {
 #close-button a{
     color:#b2bbbf;
     font-size:11px;
+    padding-right:10px;
 }
 
 #close-button a:hover{
