@@ -24,6 +24,7 @@ function initializeObjects()
 {
 	if(localStorage.getItem(DOWNLOADS_KEY)!=undefined)
 		objects=JSON.parse(localStorage.getItem(DOWNLOADS_KEY));
+	currentIndex=objects.length;
 	//console.log(localStorage.getItem(DOWNLOADS_KEY).length);
 }
 String.prototype.trim = function() {
