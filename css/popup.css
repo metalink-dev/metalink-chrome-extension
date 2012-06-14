@@ -85,7 +85,7 @@ progress {
 #body {
     overflow:hidden;
     width:400px;
-    border-bottom:1px solid #e5e5e5;
+    /*border-bottom:1px solid #e5e5e5;*/
     margin-bottom:3px;
     padding:3px 3px 4px 3px;
 }
