@@ -192,6 +192,11 @@ function min(a,b)
 {
 	return (a>b)?b:a;
 }
+function startDownload()
+{
+	for(var i=0;i<numThreads;i++)
+		downloadPiece(file,i,i*divisions,min((i+1)*divisions,numberOfPackets));
+}
 function downloadPiece(file,threadID,index,endIndex)
 {
 	var start=index*packetSize;
@@ -243,7 +248,11 @@ function downloadPiece(file,threadID,index,endIndex)
 			if(numberOfPacketsToBeDownloaded==0)
 			{
 				if(!verifyFile(file))
-					failedState();
+				{
+					currentURL++;
+					startDownload();
+					return;
+				}
 				fileSystemURL=getFileSytemURL(file.fileName,file.size);
 				saveCommand(fileSystemURL);
 				completeCommand();
@@ -308,8 +317,7 @@ self.addEventListener('message',
 				
 				numberOfPacketsToBeDownloaded=numberOfPackets-completedPackets.length;
 				setInterval(sendProgress,1000);
-				for(var i=0;i<numThreads;i++)
-					downloadPiece(file,i,i*divisions,min((i+1)*divisions,numberOfPackets));
+				startDownload();
 				break;
 
 			case 'PAUSE':
