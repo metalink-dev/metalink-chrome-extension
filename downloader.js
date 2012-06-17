@@ -182,6 +182,8 @@ function verifyFile(file)
 			case 'md-5':	computedHash=MD5(buffer);break;
 			default:	computedHash=null;
 		};
+		delete buffer;
+		delete reader;
 		if(computedHash==file.hash)
 			return true;
 		return false;
@@ -208,6 +210,9 @@ function downloadPiece(file,threadID,index,endIndex)
 		{
 			logMessage(index+' packet completed');
 			finishedBytes+=(end-start+1);
+
+			delete start;delete end;
+
 			if(index+1!=endIndex)
 				downloadPiece(file,threadID,index+1,endIndex);
 			return;
@@ -235,15 +240,27 @@ function downloadPiece(file,threadID,index,endIndex)
 				logMessage('Piece '+index+' Verification Failed. Piece Size Mismatch Error. Restarting download from another URL');
 				currentURL+=1;
 				restartState();
+
+				delete start;
+				delete end;
+				delete url;
+
 				downloadPiece(file,threadID,index,endIndex);
 				return;
 			}
+
+
+			delete buffer;
+
 			savePiece(xhrs[threadID].response,file.fileName,file.size,start);
 			numberOfPacketsToBeDownloaded--;
 			finishedBytes+=(end-start+1);
 			progress[threadID]=0;
 			completedPackets.push(index);
 
+			delete start;
+			delete end;
+			delete url;
 
 			if(numberOfPacketsToBeDownloaded==0)
 			{
