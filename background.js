@@ -309,7 +309,7 @@ function startDownload(url)
 	files=getMetalinkFile(url);
 	if(files==-1)
 		return;
-	//sendNotification('http://metalinker.org/images/favicon.ico', 'Download Initiated', getDownloadMessage(fileName), 10000, true);
+	sendNotification('http://metalinker.org/images/favicon.ico', 'Download Initiated', getDownloadMessage(fileName), 10000, true);
 	for(i=0;i<files.length;i++)
 	{
 		var currentFileIndex=currentIndex;
