@@ -119,6 +119,7 @@ function savePiece(contents,fileName,fileSize,offset)
 		bb.append(contents);
 		fileWriter.seek(offset);
 		fileWriter.write(bb.getBlob());
+		delete bb;
 	}
 	catch (e)
 	{	
@@ -243,7 +244,7 @@ function downloadPiece(file,threadID,index,endIndex)
 
 				delete start;
 				delete end;
-				delete url;
+				delete url;delete buffer;
 
 				downloadPiece(file,threadID,index,endIndex);
 				return;
