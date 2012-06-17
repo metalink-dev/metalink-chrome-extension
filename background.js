@@ -17,9 +17,12 @@
 
 //this is the vector of metalinks to be downloaded.
 var objects = [];
+var workers = [];
 var currentIndex=0;
 var currentTabURL = "";
 const DOWNLOADS_KEY="PREVIOUS_DOWNLOADS";
+const PAUSED_DOWNLOADS_KEY="PAUSED_DOWNLOADS";
+
 function initializeObjects()
 {
 	if(localStorage.getItem(DOWNLOADS_KEY)!=undefined)
@@ -215,6 +218,18 @@ chrome.tabs.onActivated.addListener
 	}
 );
 */
+/*
+function savePausedItem(file,completedPackets)
+{
+	array=JSON.parse(localStorage.getItem(PAUSED_DOWNLOADS_KEY));
+	if(array==undefined)
+		array=new Array;
+	object=new Object();
+	object.file=file;
+	object.completedPackets=completedPackets;
+	array.push(object);
+}
+*/
 function saveItem(object)
 {
 	array=JSON.parse(localStorage.getItem(DOWNLOADS_KEY));
@@ -227,36 +242,24 @@ function getDownloadMessage(url)
 {
 	return 'The Metalink is being downloaded by the Extension. Click on the extension icon to track the progress of the download.';
 }
-function startDownload(url)
+function resumeDownload(index)
 {
-	files=getMetalinkFile(url);
-	if(files==-1)
-		return;
-	sendNotification('http://metalinker.org/images/favicon.ico', 'Download Initiated', getDownloadMessage(fileName), 10000, true);
-	for(i=0;i<files.length;i++)
-	{
-		var currentFileIndex=currentIndex;
-		currentIndex++;
-		worker = new Worker('downloader.js');
-		worker.postMessage({'cmd': 'start', 'url': JSON.stringify(files[i])});
-		var object=new Object();
-		if(files[i].size)
-			object.size=files[i].size;
-		else
-			object.size="Unknown";
-		object.clear=false;
-		object.status='Downloading';	object.percent=0;
-		object.fileName=files[i].fileName;
-		objects[currentFileIndex]=object;
-		worker.addEventListener('message',
+	object=objects[index];
+	object.status='Downloading';
+	worker = new Worker('downloader.js');
+	workers[index]=worker;
+	object.file.finishedPackets=object.finishedPackets;
+	worker.postMessage({'cmd': 'START', 'url': JSON.stringify(object.file)});
+	worker.addEventListener('message',
 			function(e)
 			{
 				data = e.data;
 				switch(data.cmd)
 				{
 					case 'DOWNLOADING':
-						//console.log(data.value);
-						object.percent=parseInt(data.value);
+						if(data.value>object.percent)
+							object.percent=(data.value).toFixed(2);
+						//console.log(object.percent);
 						object.status='Downloading';
 						break;
 					case 'LOG':
@@ -275,6 +278,7 @@ function startDownload(url)
 						object.status='Failed';
 						object.percent=0;
 						console.log('Download of the file Failed');
+						worker.terminate();
 						break;
 					case 'VERIFICATION':
 						object.status='Verifying';
@@ -288,6 +292,89 @@ function startDownload(url)
 						object.percent=0;
 						object.status="Restarting"
 						console.log('Restarting Download');
+						break;
+					case 'PAUSEDSTATE':
+						object.status="Paused";
+						object.finishedPackets=JSON.parse(data.value);
+						object.finishedPackets.sort();
+						break;
+					default:
+						console.log(data.cmd);
+				};
+
+			}, false);
+}
+function startDownload(url)
+{
+	files=getMetalinkFile(url);
+	if(files==-1)
+		return;
+	//sendNotification('http://metalinker.org/images/favicon.ico', 'Download Initiated', getDownloadMessage(fileName), 10000, true);
+	for(i=0;i<files.length;i++)
+	{
+		var currentFileIndex=currentIndex;
+		currentIndex++;
+		worker = new Worker('downloader.js');
+		workers[currentFileIndex]=worker;
+		worker.postMessage({'cmd': 'START', 'url': JSON.stringify(files[i])});
+		var object=new Object();
+		object.file=files[i];
+		
+		if(files[i].size)
+			object.size=files[i].size;
+		else
+			object.size="Unknown";
+		object.clear=false;
+		object.status='Downloading';	object.percent=0;
+		object.fileName=files[i].fileName;
+		objects[currentFileIndex]=object;
+		worker.addEventListener('message',
+			function(e)
+			{
+				data = e.data;
+				switch(data.cmd)
+				{
+					case 'DOWNLOADING':
+						if(data.value>object.percent)
+							object.percent=(data.value).toFixed(2);
+						//console.log(object.percent);
+						object.status='Downloading';
+						break;
+					case 'LOG':
+						console.log(data.value);break;
+					case 'COMPLETE':
+						console.log('File Download Completed');
+						object.status='Completed';
+						object.percent=100;
+						saveItem(object);
+						break;
+					case 'SAVE':
+						console.log('save requested from '+data.value);
+						chrome.experimental.downloads.download({url: data.value,saveAs:true},function(id) {});
+						break;
+					case 'FAILED':
+						object.status='Failed';
+						object.percent=0;
+						console.log('Download of the file Failed');
+						worker.terminate();
+						break;
+					case 'VERIFICATION':
+						object.status='Verifying';
+						object.percent=100;
+						console.log('Verification Initiated');
+						break;
+					case 'SIZE':
+						object.size=data.value;
+						break;
+					case 'RESTART':
+						object.percent=0;
+						object.status="Restarting"
+						console.log('Restarting Download');
+						break;
+					case 'PAUSEDSTATE':
+						object.status="Paused";
+						object.finishedPackets=JSON.parse(data.value);
+						object.finishedPackets.sort();
 						break;
 					default:
 						console.log(data.cmd);
@@ -316,10 +403,14 @@ chrome.extension.onRequest.addListener
 	{
 		switch(info.cmd)
 		{
-			case 'DOWNLOAD':fileName=info.url;
+			case 'DOWNLOAD'	:fileName=info.url;
 					startDownload(fileName);
 					break;
-			case 'CLEAR':	localStorage.clear();
+
+			case 'PAUSE'	:if(objects[info.data].status=='Downloading')
+						workers[info.data].postMessage({'cmd':'PAUSE'});
+					break;
+			case 'RESUME'	:resumeDownload(info.data);
 					break;
 		};
  	}

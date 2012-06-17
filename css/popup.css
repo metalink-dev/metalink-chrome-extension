@@ -77,6 +77,19 @@ progress {
     color:#000;
 }
 
+#controls{
+    float:right;
+}
+
+#controls a{
+    color:#b2bbbf;
+    font-size:11px;
+    padding-right:10px;
+}
+
+#controls a:hover{
+    color:#000;
+}
 /*
  *-----------------------------------------------------------------------
  * BODY LAYOUT
@@ -98,6 +111,10 @@ progress {
 	border-bottom:1px solid #e5e5e5;
 	overflow:hidden;
 	text-align:center;
+}
+#fileName
+{
+	float:left;
 }
 #count
 {

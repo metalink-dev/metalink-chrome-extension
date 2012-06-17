@@ -25,10 +25,22 @@ $(document).ready
 (
 	function()
 	{
+		function pause_handler()
+		{
+			if($(this).text()=="pause")
+			{
+				$(this).text("resume");
+				chrome.extension.sendRequest({data: parseInt($(this).attr('href')), cmd:"PAUSE"});
+				return false;
+			}
+			$(this).text("pause");
+			chrome.extension.sendRequest({data: parseInt($(this).attr('href')), cmd:"RESUME"});
+			return false;
+		}
 		function removeDiv(index)
 		{
 			div=elements[index];
-			div.hide('fast');
+			div.hide('slow');
 		}
 		function updateDiv(index,status,progress,fileSize)
 		{
@@ -37,26 +49,41 @@ $(document).ready
 				$("progress",div).removeAttr('value');
 			else
 				$("progress",div).attr('value',progress);
+
+			if(status=="Completed"||status=='Verifying'||status=='Restarting')
+				$("#controls",div).css('display','none');
+
 			$("#status",div).text(status);
-			$("#percent",div).text(progress+"%");
+			$("#percent",div).text(progress.toString()+"%");
 			$('#size',div).text('Size : '+(fileSize/(1024*1024)).toFixed(2)+' MB');
 		}
 		function createDiv(fileName,fileSize,percent,status,hidden)
 		{
+			index=elements.length;
 			var e=$('<progress max="100" value="'+percent+'"></progress>');
 			if(status=='Verifying'||status=='Restarting')
 				e.removeAttr('value');
-			var span=$('<span id="size">Size : '+(fileSize/(1024*1024)).toFixed(2)+' MB	</span><span id="percent">'+percent+'%</span><span id="status">'+status+'</span>');
-			var div=$('<div id="download">'+fileName+'</div>');
+			var span=$('<span id="size">Size : '+(fileSize/(1024*1024)).toFixed(2)+' MB	</span><span id="percent">'+percent.toString()+'%</span><span id="status">'+status+'</span>');
+			var controls=$('<span id="controls"></span>');
+			if(status=="Downloading"||status=="Paused")
+			{
+				if(status=="Paused")
+					text="resume";
+				else
+					text="pause";
+
+				controls.append(function(){	return $('<a href="'+index+'" class="pause">'+text+'</a>').click(pause_handler);	});
+			}
+			var div=$('<div id="download"><span id="fileName">'+fileName+'</span></div>');
 			if(hidden)
 				div.css('display','none');
-			div.append(e).append(span);
+			div.append(controls).append(e).append(span);
 			$("#body").append(div);
 			elements.push(div);
 		}
-		function updateView()
+		function clearView()
 		{
-			var count=0;
+			count=0;
 			for(i=0;i<lastLength;i++)
 			{
 				if(objects[i].clear)
@@ -64,6 +91,17 @@ $(document).ready
 					removeDiv(i);
 					continue;
 				}
+				count++;
+			}
+			$('#count').html(count+"\tDownloads");
+		}
+		function updateView()
+		{
+			var count=0;
+			for(i=0;i<lastLength;i++)
+			{
+				if(objects[i].clear)
+					continue;
 				count++;
 				updateDiv(i,objects[i].status,objects[i].percent,objects[i].size);
 			}
@@ -99,11 +137,10 @@ $(document).ready
 			for(i=0;i<objects.length;i++)
 				if(objects[i].status=='Completed')
 					objects[i].clear=true;
-			updateView();
+			clearView();
 			return false;
-		});
-		$('a.close').focus();
+		});		
 		init();
-		setInterval(updateView,100);
+		setInterval(updateView,1000);
  	}
 );
