@@ -248,7 +248,10 @@ function resumeDownload(index)
 	object.status='Downloading';
 	worker = new Worker('downloader.js');
 	workers[index]=worker;
+
 	object.file.finishedPackets=object.finishedPackets;
+	object.file.md5=object.md5;
+
 	worker.postMessage({'cmd': 'START', 'url': JSON.stringify(object.file)});
 	worker.addEventListener('message',
 			function(e)
@@ -373,8 +376,9 @@ function startDownload(url)
 						break;
 					case 'PAUSEDSTATE':
 						object.status="Paused";
-						object.finishedPackets=JSON.parse(data.value);
-						object.finishedPackets.sort();
+						tempObject=JSON.parse(data.value);
+						object.finishedPackets=tempObject.finishedPackets;
+						object.md5=tempObject.md5;
 						break;
 					default:
 						console.log(data.cmd);

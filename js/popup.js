@@ -64,7 +64,11 @@ $(document).ready
 			if(status=='Verifying'||status=='Restarting')
 				e.removeAttr('value');
 			var span=$('<span id="size">Size : '+(fileSize/(1024*1024)).toFixed(2)+' MB	</span><span id="percent">'+percent.toString()+'%</span><span id="status">'+status+'</span>');
+			
+			
+
 			var controls=$('<span id="controls"></span>');
+			controls.css('display','none');
 			if(status=="Downloading"||status=="Paused")
 			{
 				if(status=="Paused")
@@ -74,6 +78,7 @@ $(document).ready
 
 				controls.append(function(){	return $('<a href="'+index+'" class="pause">'+text+'</a>').click(pause_handler);	});
 			}
+
 			var div=$('<div id="download"><span id="fileName">'+fileName+'</span></div>');
 			if(hidden)
 				div.css('display','none');
