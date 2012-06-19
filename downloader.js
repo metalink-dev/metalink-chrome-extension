@@ -15,14 +15,14 @@
 //	You should have received a copy of the GNU General Public License
 //	along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-importScripts('SHA1.js', 'SHA256.js', 'MD5.js');
+//importScripts('SHA1.js', 'SHA256.js', 'MD5.js');
 
 self.requestFileSystemSync = self.webkitRequestFileSystemSync || self.requestFileSystemSync;
 self.BlobBuilder = self.BlobBuilder || self.WebKitBlobBuilder || self.MozBlobBuilder;
 
 var currentURL=0;
 var packetSize=512*1024;
-var fileSize,numThreads=3,divisions;
+var fileSize,numThreads=1,divisions;
 var numberOfPackets,numberOfPacketsToBeDownloaded,finishedBytes=0,fraction;
 
 var fileEntry,fileWriter;
@@ -30,9 +30,11 @@ var progress=new Array();
 var xhrs = [];
 var completedPackets=[];
 
+var md5;
 
 function failedState()
 {
+	delete object;
 	self.postMessage({'cmd':'FAILED'});
 	self.close();
 }
@@ -46,6 +48,7 @@ function saveCommand(url)
 }
 function completeCommand()
 {
+	delete object;
 	self.postMessage({'cmd':'COMPLETE'});
 	self.close();
 }
@@ -235,7 +238,10 @@ function downloadPiece(file,threadID,index,endIndex)
 
 		xhrs[threadID].onload	= function(e)
 		{
+			
+			/*
 			var buffer = new Uint8Array(this.response);
+			
 			if(buffer.length!=(end-start+1))
 			{
 				logMessage('Piece '+index+' Verification Failed. Piece Size Mismatch Error. Restarting download from another URL');
@@ -250,9 +256,19 @@ function downloadPiece(file,threadID,index,endIndex)
 				return;
 			}
 
+			
+			if(index==numberOfPackets-1)
+				lastPacket=true;
+			else
+				lastPacket=false;
+			
+			md5.update(buffer,lastPacket);
+			
+
 
 			delete buffer;
 
+			*/
 			savePiece(xhrs[threadID].response,file.fileName,file.size,start);
 			numberOfPacketsToBeDownloaded--;
 			finishedBytes+=(end-start+1);
@@ -265,12 +281,15 @@ function downloadPiece(file,threadID,index,endIndex)
 
 			if(numberOfPacketsToBeDownloaded==0)
 			{
+				//logMessage(md5.getResult());
+				/*
 				if(!verifyFile(file))
 				{
 					currentURL++;
 					startDownload();
 					return;
 				}
+				*/
 				fileSystemURL=getFileSytemURL(file.fileName,file.size);
 				saveCommand(fileSystemURL);
 				completeCommand();
@@ -333,6 +352,9 @@ self.addEventListener('message',
 				for(i=0;i<numThreads;i++)
 					progress[i]=0;
 				
+
+				//md5=new SHA1(fileSize);
+
 				numberOfPacketsToBeDownloaded=numberOfPackets-completedPackets.length;
 				setInterval(sendProgress,1000);
 				startDownload();

@@ -15,8 +15,40 @@
 //	You should have received a copy of the GNU General Public License
 //	along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-function SHA1 (array)
+function SHA1 (fileSize)
 { 
+	var object=new Object();
+	var total_len=fileSize;
+
+	object.H0 = 0x67452301;
+	object.H1 = 0xEFCDAB89;
+	object.H2 = 0x98BADCFE;
+	object.H3 = 0x10325476;
+	object.H4 = 0xC3D2E1F0;
+
+	function cvt_hex(val)
+	{
+		var str="";
+		var i;
+		var v;
+
+		for( i=7; i>=0; i-- )
+		{
+			v = (val>>>(i*4))&0x0f;
+			str += v.toString(16);
+		}
+		return str;
+	};
+	this.getResult=function()
+	{
+		var H0=object.H0;
+		var H1=object.H1;
+		var H2=object.H2;
+		var H3=object.H3;
+		var H4=object.H4;
+		return (cvt_hex(H0) + cvt_hex(H1) + cvt_hex(H2) + cvt_hex(H3) + cvt_hex(H4)).toLowerCase();
+	};
+
 	function rotate_left(n,s) 
 	{
 		var t4 = ( n<<s ) | (n>>>(32-s));
@@ -38,122 +70,127 @@ function SHA1 (array)
 		}
 		return str;
 	};
- 
-	function cvt_hex(val)
+ 	this.update=function(array,lastPacket)
 	{
-		var str="";
-		var i;
-		var v;
- 
-		for( i=7; i>=0; i-- )
-		{
-			v = (val>>>(i*4))&0x0f;
-			str += v.toString(16);
-		}
-		return str;
-	};
-	var blockstart;
-	var i, j;
-	var W = new Array(80);
-	var H0 = 0x67452301;
-	var H1 = 0xEFCDAB89;
-	var H2 = 0x98BADCFE;
-	var H3 = 0x10325476;
-	var H4 = 0xC3D2E1F0;
-	var A, B, C, D, E;
-	var temp;
- 
-	var msg_len = array.length;
- 
-	var word_array = new Array();
-	for( i=0; i<msg_len-3; i+=4 ) {
-		j = array[i]<<24 | array[i+1]<<16 |
-		array[i+2]<<8 | array[i+3];
-		word_array.push( j );
-	}
- 
-	switch( msg_len % 4 ) {
-		case 0:
-			i = 0x080000000;
-		break;
-		case 1:
-			i = array[msg_len-1]<<24 | 0x0800000;
-		break;
- 
-		case 2:
-			i = array[msg_len-2]<<24 | array[msg_len-1]<<16 | 0x08000;
-		break;
- 
-		case 3:
-			i = array[msg_len-3]<<24 | array[msg_len-2]<<16 | array[msg_len-1]<<8	| 0x80;
-		break;
-	}
- 
-	word_array.push( i );
- 
-	while( (word_array.length % 16) != 14 ) word_array.push( 0 );
- 
-	word_array.push( msg_len>>>29 );
-	word_array.push( (msg_len<<3)&0x0ffffffff );
- 
- 
-	for ( blockstart=0; blockstart<word_array.length; blockstart+=16 ) {
- 
-		for( i=0; i<16; i++ ) W[i] = word_array[blockstart+i];
-		for( i=16; i<=79; i++ ) W[i] = rotate_left(W[i-3] ^ W[i-8] ^ W[i-14] ^ W[i-16], 1);
- 
-		A = H0;
-		B = H1;
-		C = H2;
-		D = H3;
-		E = H4;
- 
-		for( i= 0; i<=19; i++ ) {
-			temp = (rotate_left(A,5) + ((B&C) | (~B&D)) + E + W[i] + 0x5A827999) & 0x0ffffffff;
-			E = D;
-			D = C;
-			C = rotate_left(B,30);
-			B = A;
-			A = temp;
-		}
- 
-		for( i=20; i<=39; i++ ) {
-			temp = (rotate_left(A,5) + (B ^ C ^ D) + E + W[i] + 0x6ED9EBA1) & 0x0ffffffff;
-			E = D;
-			D = C;
-			C = rotate_left(B,30);
-			B = A;
-			A = temp;
-		}
- 
-		for( i=40; i<=59; i++ ) {
-			temp = (rotate_left(A,5) + ((B&C) | (B&D) | (C&D)) + E + W[i] + 0x8F1BBCDC) & 0x0ffffffff;
-			E = D;
-			D = C;
-			C = rotate_left(B,30);
-			B = A;
-			A = temp;
-		}
- 
-		for( i=60; i<=79; i++ ) {
-			temp = (rotate_left(A,5) + (B ^ C ^ D) + E + W[i] + 0xCA62C1D6) & 0x0ffffffff;
-			E = D;
-			D = C;
-			C = rotate_left(B,30);
-			B = A;
-			A = temp;
-		}
- 
-		H0 = (H0 + A) & 0x0ffffffff;
-		H1 = (H1 + B) & 0x0ffffffff;
-		H2 = (H2 + C) & 0x0ffffffff;
-		H3 = (H3 + D) & 0x0ffffffff;
-		H4 = (H4 + E) & 0x0ffffffff;
- 
-	}
- 
-	var temp = cvt_hex(H0) + cvt_hex(H1) + cvt_hex(H2) + cvt_hex(H3) + cvt_hex(H4);
- 
-	return temp.toLowerCase(); 
-}
+		var blockstart;
+		var i, j;
+		var W = new Array(80);
+	
+		/*
+		var H0 = 0x67452301;
+		var H1 = 0xEFCDAB89;
+		var H2 = 0x98BADCFE;
+		var H3 = 0x10325476;
+		var H4 = 0xC3D2E1F0;
+		*/
 
+		var H0=object.H0;
+		var H1=object.H1;
+		var H2=object.H2;
+		var H3=object.H3;
+		var H4=object.H4;
+	
+		var A, B, C, D, E;
+		var temp;
+	 
+		var msg_len = array.length;
+	 
+		var word_array = new Array();
+		for( i=0; i<msg_len-3; i+=4 ) {
+			j = array[i]<<24 | array[i+1]<<16 |
+			array[i+2]<<8 | array[i+3];
+			word_array.push( j );
+		}
+
+		if(lastPacket)
+		{
+			switch( msg_len % 4 ) {
+				case 0:
+					i = 0x080000000;
+				break;
+				case 1:
+					i = array[msg_len-1]<<24 | 0x0800000;
+				break;
+
+				case 2:
+					i = array[msg_len-2]<<24 | array[msg_len-1]<<16 | 0x08000;
+				break;
+
+				case 3:
+					i = array[msg_len-3]<<24 | array[msg_len-2]<<16 | array[msg_len-1]<<8	| 0x80;
+				break;
+			}
+
+			word_array.push( i );
+	 
+			while( (word_array.length % 16) != 14 ) word_array.push( 0 );
+		 
+			word_array.push( total_len>>>29 );
+			word_array.push( (total_len<<3)&0x0ffffffff );
+		}
+	 
+	 
+		for ( blockstart=0; blockstart<word_array.length; blockstart+=16 ) 
+		{
+	 
+			for( i=0; i<16; i++ ) W[i] = word_array[blockstart+i];
+			for( i=16; i<=79; i++ ) W[i] = rotate_left(W[i-3] ^ W[i-8] ^ W[i-14] ^ W[i-16], 1);
+	 
+			A = H0;
+			B = H1;
+			C = H2;
+			D = H3;
+			E = H4;
+	 
+			for( i= 0; i<=19; i++ ) {
+				temp = (rotate_left(A,5) + ((B&C) | (~B&D)) + E + W[i] + 0x5A827999) & 0x0ffffffff;
+				E = D;
+				D = C;
+				C = rotate_left(B,30);
+				B = A;
+				A = temp;
+			}
+	 
+			for( i=20; i<=39; i++ ) {
+				temp = (rotate_left(A,5) + (B ^ C ^ D) + E + W[i] + 0x6ED9EBA1) & 0x0ffffffff;
+				E = D;
+				D = C;
+				C = rotate_left(B,30);
+				B = A;
+				A = temp;
+			}
+	 
+			for( i=40; i<=59; i++ ) {
+				temp = (rotate_left(A,5) + ((B&C) | (B&D) | (C&D)) + E + W[i] + 0x8F1BBCDC) & 0x0ffffffff;
+				E = D;
+				D = C;
+				C = rotate_left(B,30);
+				B = A;
+				A = temp;
+			}
+	 
+			for( i=60; i<=79; i++ ) {
+				temp = (rotate_left(A,5) + (B ^ C ^ D) + E + W[i] + 0xCA62C1D6) & 0x0ffffffff;
+				E = D;
+				D = C;
+				C = rotate_left(B,30);
+				B = A;
+				A = temp;
+			}
+	 
+			H0 = (H0 + A) & 0x0ffffffff;
+			H1 = (H1 + B) & 0x0ffffffff;
+			H2 = (H2 + C) & 0x0ffffffff;
+			H3 = (H3 + D) & 0x0ffffffff;
+			H4 = (H4 + E) & 0x0ffffffff;
+	 
+		}
+	 	
+		object.H0=H0;
+		object.H1=H1;
+		object.H2=H2;
+		object.H3=H3;
+		object.H4=H4;
+
+	};
+}
