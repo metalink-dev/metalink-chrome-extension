@@ -15,7 +15,7 @@
 //	You should have received a copy of the GNU General Public License
 //	along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-//importScripts('SHA1.js', 'SHA256.js', 'MD5.js');
+importScripts('SHA1.js', 'SHA256.js', 'MD5.js');
 
 self.requestFileSystemSync = self.webkitRequestFileSystemSync || self.requestFileSystemSync;
 self.BlobBuilder = self.BlobBuilder || self.WebKitBlobBuilder || self.MozBlobBuilder;
@@ -30,7 +30,7 @@ var progress=new Array();
 var xhrs = [];
 var completedPackets=[];
 
-var md5;
+var md5, PAUSE_FLAG=false;
 
 function failedState()
 {
@@ -38,9 +38,13 @@ function failedState()
 	self.postMessage({'cmd':'FAILED'});
 	self.close();
 }
-function saveObject(packets)
+function saveObject(packets,checksum)
 {
-	self.postMessage({'cmd':'PAUSEDSTATE','value':JSON.stringify(packets)});
+	temp=new Object();
+	temp.finishedPackets=packets;
+	temp.md5=md5;
+	self.postMessage({'cmd':'PAUSEDSTATE','value':JSON.stringify(temp)});
+	delete temp;
 }
 function saveCommand(url)
 {
@@ -168,31 +172,49 @@ function getURL(urls,required)
 		}
 	return -1;
 }
+function init_verify(file)
+{
+	/*
+	if(file.md5)
+	{
+		md5=file.md5;
+		logMessage('ok this looks ok');
+		return;
+	}
+	*/
+
+	if(file.hash_type)
+	{
+		switch(file.hash_type)
+		{
+			case 'sha1':	md5=new SHA1(file.size);break;
+			case 'sha-1':	md5=new SHA1(file.size);break;
+			case 'sha256':	md5=new SHA256(file.size);break;
+			case 'sha-256':	md5=new SHA256(file.size);break;
+			case 'md5':	md5=new MD5(file.size);break;
+			case 'md-5':	md5=new MD5(file.size);break;
+			default:	md5=null;
+		};
+	}
+}
 function verifyFile(file)
 {
 	verification();
 	try
 	{
-		f=fileEntry.file();
-		var reader = new FileReaderSync();
-		var buffer =new Uint8Array(reader.readAsArrayBuffer(f));
-		switch(file.hash_type)
+		if(md5)
 		{
-			case 'sha1':	computedHash=SHA1(buffer);break;
-			case 'sha-1':	computedHash=SHA1(buffer);break;
-			case 'sha256':	computedHash=SHA256(buffer);break;
-			case 'sha-256':	computedHash=SHA256(buffer);break;
-			case 'md5':	computedHash=MD5(buffer);break;
-			case 'md-5':	computedHash=MD5(buffer);break;
-			default:	computedHash=null;
-		};
-		delete buffer;
-		delete reader;
-		if(computedHash==file.hash)
-			return true;
-		return false;
+			logMessage(md5.getResult());
+			if(md5.getResult()==file.hash)
+				return true;
+		}
 
-	}catch(e)	{logMessage(e.toString());return false;}
+		return false;
+	}
+	catch(e)	
+	{
+		logMessage(e.toString());return false;
+	}
 }
 function min(a,b)
 {
@@ -239,10 +261,7 @@ function downloadPiece(file,threadID,index,endIndex)
 		xhrs[threadID].onload	= function(e)
 		{
 			
-			/*
-			var buffer = new Uint8Array(this.response);
-			
-			if(buffer.length!=(end-start+1))
+			/*if(buffer.length!=(end-start+1))
 			{
 				logMessage('Piece '+index+' Verification Failed. Piece Size Mismatch Error. Restarting download from another URL');
 				currentURL+=1;
@@ -255,41 +274,47 @@ function downloadPiece(file,threadID,index,endIndex)
 				downloadPiece(file,threadID,index,endIndex);
 				return;
 			}
-
-			
-			if(index==numberOfPackets-1)
-				lastPacket=true;
-			else
-				lastPacket=false;
-			
-			md5.update(buffer,lastPacket);
-			
-
-
-			delete buffer;
-
 			*/
+
 			savePiece(xhrs[threadID].response,file.fileName,file.size,start);
 			numberOfPacketsToBeDownloaded--;
 			finishedBytes+=(end-start+1);
 			progress[threadID]=0;
 			completedPackets.push(index);
+			if(md5)
+			{
+				var buffer = new Uint8Array(this.response);
+				if(index==numberOfPackets-1)
+					lastPacket=true;
+				else
+					lastPacket=false;
+			
+				md5.update(buffer,lastPacket);
+				delete buffer;
+			}
 
 			delete start;
 			delete end;
 			delete url;
 
+			if(PAUSE_FLAG)
+			{
+				saveObject(completedPackets);
+				self.close();
+			}
+			
 			if(numberOfPacketsToBeDownloaded==0)
 			{
-				//logMessage(md5.getResult());
-				/*
 				if(!verifyFile(file))
 				{
 					currentURL++;
+
+					file.finishedPackets=null;
+
+					init(file);
 					startDownload();
 					return;
 				}
-				*/
 				fileSystemURL=getFileSytemURL(file.fileName,file.size);
 				saveCommand(fileSystemURL);
 				completeCommand();
@@ -324,7 +349,34 @@ function sendProgress()
 	total=finishedBytes;
 	for(i=0;i<numThreads;i++)
 		total+=progress[i];
+
 	updateProgress(total*fraction);
+}
+function init(file)
+{
+	fileSize=file.size;
+	completedPackets=[];
+	if(file.finishedPackets!=null)
+	{
+		logMessage('Resumed');
+		getFileEntry(file.fileName,fileSize);
+		completedPackets=file.finishedPackets;
+	}
+	else
+		createFileEntry(file.fileName,fileSize);
+
+	fraction=(1/fileSize)*100;
+	numberOfPackets=Math.ceil(fileSize/packetSize);
+	divisions=Math.ceil(numberOfPackets/numThreads);
+
+	numberOfPacketsToBeDownloaded=numberOfPackets - completedPackets.length;
+
+	for(i=0;i<numThreads;i++)
+		progress[i]=0;
+
+	finishedBytes=0
+
+	init_verify(file);
 }
 self.addEventListener('message', 
 	function(e) 	{
@@ -333,37 +385,16 @@ self.addEventListener('message',
 		{
 			case 'START':
 				file=JSON.parse(data.url);
-				fileSize=file.size;
-
-				if(file.finishedPackets!=null)
-				{
-					logMessage('Resumed');
-					getFileEntry(file.fileName,fileSize);
-					completedPackets=file.finishedPackets;
-				}
-				else
-					createFileEntry(file.fileName,fileSize);
-
-
-				fraction=(1/fileSize)*100;
-				numberOfPackets=Math.ceil(fileSize/packetSize);
-				divisions=Math.ceil(numberOfPackets/numThreads);
-				
-				for(i=0;i<numThreads;i++)
-					progress[i]=0;
+				init(file);
 				
 
-				//md5=new SHA1(fileSize);
-
-				numberOfPacketsToBeDownloaded=numberOfPackets-completedPackets.length;
 				setInterval(sendProgress,1000);
 				startDownload();
 				break;
 
 			case 'PAUSE':
-				logMessage('PAUSED');
-				saveObject(completedPackets);
-				self.close();
+				logMessage('PAUSING');
+				PAUSE_FLAG=true;
 				break;
 		};
 	},
