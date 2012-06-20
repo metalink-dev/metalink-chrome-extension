@@ -36,7 +36,7 @@ function displayParameters(files)
 {
 	for(i=0;i<files.length;i++)
 	{
-		var file=files[i];
+		file=files[i];
 		console.log(file.size);
 		console.log(files[i].fileName);
 		for(k=0;k<files[i].urls.length;k++)
@@ -131,6 +131,7 @@ function extractContents(contents, type)
 			files.push(file);
 		}
 	}
+	delete x,file,v,hashes;
 	//displayParameters(files);
 	return files;
 }

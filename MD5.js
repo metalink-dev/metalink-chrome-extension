@@ -25,7 +25,7 @@ function MD5(fileSize)
 
 	function WordToHex(lValue) 
 	{
-			var WordToHexValue="",WordToHexValue_temp="",lByte,lCount;
+			WordToHexValue="",WordToHexValue_temp="",lByte=0,lCount=0;
 			for (lCount = 0;lCount<=3;lCount++) {
 				lByte = (lValue>>>(lCount*8)) & 255;
 				WordToHexValue_temp = "0" + lByte.toString(16);
@@ -47,7 +47,7 @@ function MD5(fileSize)
 	}
  
 	function AddUnsigned(lX,lY) {
-		var lX4,lY4,lX8,lY8,lResult;
+		//lX4,lY4,lX8,lY8,lResult;
 		lX8 = (lX & 0x80000000);
 		lY8 = (lY & 0x80000000);
 		lX4 = (lX & 0x40000000);
@@ -94,20 +94,20 @@ function MD5(fileSize)
  
 	function ConvertToWordArray(string,lastPacket)
 	{
-		var lWordCount;
-		var lMessageLength = string.length;
+		//lWordCount;
+		lMessageLength = string.length;
 		if(lastPacket)
 		{
-			var lNumberOfWords_temp1=lMessageLength + 8;
-			var lNumberOfWords_temp2=(lNumberOfWords_temp1-(lNumberOfWords_temp1 % 64))/64;
-			var lNumberOfWords = (lNumberOfWords_temp2+1)*16;
-			var lWordArray=Array(lNumberOfWords-1);
+			lNumberOfWords_temp1=lMessageLength + 8;
+			lNumberOfWords_temp2=(lNumberOfWords_temp1-(lNumberOfWords_temp1 % 64))/64;
+			lNumberOfWords = (lNumberOfWords_temp2+1)*16;
+			lWordArray=Array(lNumberOfWords-1);
 		}
 		else
-			var lWordArray=Array(lMessageLength>>2);
+			lWordArray=Array(lMessageLength>>2);
 
-		var lBytePosition = 0;
-		var lByteCount = 0;
+		lBytePosition = 0;
+		lByteCount = 0;
 		while ( lByteCount < lMessageLength ) {
 			lWordCount = (lByteCount-(lByteCount % 4))/4;
 			lBytePosition = (lByteCount % 4)*8;
@@ -127,12 +127,12 @@ function MD5(fileSize)
  
 	this.update=function(array,lastPacket)
 	{
-		var x=Array();
+		x=Array();
 		var k,AA,BB,CC,DD,a,b,c,d;
-		var S11=7, S12=12, S13=17, S14=22;
-		var S21=5, S22=9 , S23=14, S24=20;
-		var S31=4, S32=11, S33=16, S34=23;
-		var S41=6, S42=10, S43=15, S44=21;
+		S11=7, S12=12, S13=17, S14=22;
+		S21=5, S22=9 , S23=14, S24=20;
+		S31=4, S32=11, S33=16, S34=23;
+		S41=6, S42=10, S43=15, S44=21;
 
 	 
 		x = ConvertToWordArray(array,lastPacket);
@@ -219,5 +219,7 @@ function MD5(fileSize)
 		object.b=b;
 		object.c=c;
 		object.d=d;
+		delete k,AA,BB,CC,DD,a,b,c,d;
+		delete x;
 	};
 }

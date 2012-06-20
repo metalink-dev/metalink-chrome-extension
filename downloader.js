@@ -21,7 +21,7 @@ self.requestFileSystemSync = self.webkitRequestFileSystemSync || self.requestFil
 self.BlobBuilder = self.BlobBuilder || self.WebKitBlobBuilder || self.MozBlobBuilder;
 
 var currentURL=0;
-var packetSize=512*1024;
+var packetSize=1024*1024;
 var fileSize,numThreads=1,divisions;
 var numberOfPackets,numberOfPacketsToBeDownloaded,finishedBytes=0,fraction;
 
@@ -52,7 +52,7 @@ function saveCommand(url)
 }
 function completeCommand()
 {
-	delete object;
+	delete object, progress;
 	self.postMessage({'cmd':'COMPLETE'});
 	self.close();
 }
@@ -80,8 +80,8 @@ function deleteFile(fileName,fileSize)
 {
 	try
 	{
-		var fs = requestFileSystemSync(TEMPORARY, fileSize);
-		var tempFileEntry = fs.root.getFile(fileName, {create: false});
+		fs = requestFileSystemSync(TEMPORARY, fileSize);
+		tempFileEntry = fs.root.getFile(fileName, {create: false});
 		tempFileEntry.remove();
 	}catch(e){	logMessage('The file Does not Exist in Temporary Directory');	}
 }
@@ -92,7 +92,7 @@ function createFileEntry(fileName,fileSize)
 	deleteFile(fileName,fileSize);
 	try
 	{
-		var fs = requestFileSystemSync(TEMPORARY, fileSize);
+		fs = requestFileSystemSync(TEMPORARY, fileSize);
 		fileEntry = fs.root.getFile(fileName, {create: true});
 		fileWriter=fileEntry.createWriter();
 		fileWriter.truncate(fileSize);
@@ -109,7 +109,7 @@ function getFileEntry(fileName,fileSize)
 {
 	try
 	{
-		var fs = requestFileSystemSync(TEMPORARY, fileSize);
+		fs = requestFileSystemSync(TEMPORARY, fileSize);
 		fileEntry = fs.root.getFile(fileName, {create: false});
 		fileWriter=fileEntry.createWriter();
 	}
@@ -122,15 +122,14 @@ function savePiece(contents,fileName,fileSize,offset)
 {
 	try
 	{
-		var bb = new BlobBuilder();
+		bb = new BlobBuilder();
 		bb.append(contents);
 		fileWriter.seek(offset);
 		fileWriter.write(bb.getBlob());
-		delete bb;
 	}
 	catch (e)
 	{	
-		logMessage(e.toString());
+		logMessage('Failure to save piece');
 	}
 }
 
@@ -142,9 +141,9 @@ function saveFile(contents, fileName, fileSize)
 {
 	try
 	{
-		var fs = requestFileSystemSync(TEMPORARY, fileSize+100);
-		var fileEntry = fs.root.getFile(fileName, {create: true});
-		var bb = new BlobBuilder();
+		fs = requestFileSystemSync(TEMPORARY, fileSize+100);
+		fileEntry = fs.root.getFile(fileName, {create: true});
+		bb = new BlobBuilder();
 		bb.append(contents);
 		try
 		{
@@ -200,11 +199,11 @@ function init_verify(file)
 function verifyFile(file)
 {
 	verification();
+	logMessage(md5.getResult());
 	try
 	{
 		if(md5)
 		{
-			logMessage(md5.getResult());
 			if(md5.getResult()==file.hash)
 				return true;
 		}
@@ -213,7 +212,7 @@ function verifyFile(file)
 	}
 	catch(e)	
 	{
-		logMessage(e.toString());return false;
+		logMessage('Failure to verify');return false;
 	}
 }
 function min(a,b)
@@ -222,15 +221,16 @@ function min(a,b)
 }
 function startDownload()
 {
-	for(var i=0;i<numThreads;i++)
+	for(i=0;i<numThreads;i++)
 		downloadPiece(file,i,i*divisions,min((i+1)*divisions,numberOfPackets));
 }
 function downloadPiece(file,threadID,index,endIndex)
 {
-	var start=index*packetSize;
-	var end=min((index+1)*packetSize-1,file.size-1);
+	start=index*packetSize;
+	end=min((index+1)*packetSize-1,file.size-1);
 	progress[threadID]=0;
 
+	/*
 	if(file.finishedPackets)
 		if(completedPackets.indexOf(index)!=-1)
 		{
@@ -243,9 +243,10 @@ function downloadPiece(file,threadID,index,endIndex)
 				downloadPiece(file,threadID,index+1,endIndex);
 			return;
 		}
+	*/
 
 	logMessage('Download packet '+index);
-	var url=getURL(file.urls,currentURL);
+	url=getURL(file.urls,currentURL);
 	if(url==-1)
 	{
 		failedState();
@@ -280,22 +281,21 @@ function downloadPiece(file,threadID,index,endIndex)
 			numberOfPacketsToBeDownloaded--;
 			finishedBytes+=(end-start+1);
 			progress[threadID]=0;
-			completedPackets.push(index);
+			//completedPackets.push(index);
+
 			if(md5)
 			{
-				var buffer = new Uint8Array(this.response);
 				if(index==numberOfPackets-1)
 					lastPacket=true;
 				else
 					lastPacket=false;
 			
-				md5.update(buffer,lastPacket);
-				delete buffer;
+				md5.update(new Uint8Array(this.response),lastPacket);
 			}
-
 			delete start;
 			delete end;
 			delete url;
+			delete xhrs[threadID];
 
 			if(PAUSE_FLAG)
 			{
