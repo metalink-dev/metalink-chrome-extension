@@ -98,7 +98,8 @@ function SHA256(fileSize)
 			HASH[7] = safe_add(h, HASH[7]);
 		}
 
-		delete K, W, a, b, c, d, e ,f, g, h;
+		delete W;
+		delete K, a, b, c, d, e ,f, g, h;
 		delete T1, T2;
 	}
  
