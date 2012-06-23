@@ -230,8 +230,9 @@ function getFileSize(address)
 	client= new XMLHttpRequest();
 	client.open("HEAD", address, false);
 	client.send();
-	logMessage(client.getResponseHeader("Content-Length"));
-	return client.getResponseHeader("Content-Length");
+	if(client.status==200)
+		return client.getResponseHeader("Content-Length");
+	return -1;
 }
 function downloadPiece(file,threadID,index,endIndex)
 {
@@ -269,8 +270,14 @@ function downloadPiece(file,threadID,index,endIndex)
 
 		xhrs[threadID].onload	= function(e)
 		{
-			savePiece(xhrs[threadID].response,file.fileName,file.size,start);
+			if(xhrs[threadID].status!=200)
+			{
+				currentURL++;
+				downloadPiece(file,threadID,index,endIndex);
+				return;
+			}
 
+			savePiece(xhrs[threadID].response,file.fileName,file.size,start);
 			//numberOfPacketsToBeDownloaded--;
 
 			finishedBytes+=(end-start+1);
@@ -357,9 +364,20 @@ function init(file)
 	fileSize=file.size;
 	if(fileSize==null)
 	{
-		fileSize=getFileSize(getURL(file.urls,currentURL));
-		file.size=fileSize;
-		updateSize(fileSize);
+		while(true)
+		{
+			address=getURL(file.urls,currentURL);
+			if(address==-1)
+				failedState();
+			fileSize=getFileSize(address);
+			if(fileSize>0)
+			{
+				file.size=fileSize;
+				updateSize(fileSize);
+				break;
+			}
+			currentURL++;
+		}
 	}
 
 	completedPackets=-1;
