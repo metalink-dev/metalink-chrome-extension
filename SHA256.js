@@ -23,6 +23,14 @@ function SHA256(fileSize)
 
 	var total_len=fileSize*chrsz;
 	
+	function initialize(temp)
+	{
+		for(i=0;i<temp.length;i++)	HASH[i]=temp[i];
+	}
+	function exportObject()
+	{
+		return HASH;
+	}
 	function safe_add (x, y) 
 	{
 		lsw = (x & 0xFFFF) + (y & 0xFFFF);

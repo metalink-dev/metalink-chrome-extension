@@ -68,7 +68,7 @@ $(document).ready
 			
 
 			var controls=$('<span id="controls"></span>');
-			controls.css('display','none');
+			//controls.css('display','none');
 			if(status=="Downloading"||status=="Paused")
 			{
 				if(status=="Paused")
@@ -138,7 +138,7 @@ $(document).ready
 		$('a.close').click(function(){window.close();});
 		$('a.clear').click(function()
 		{
-			localStorage.clear();
+			localStorage.removeItem(DOWNLOADS_KEY);
 			for(i=0;i<objects.length;i++)
 				if(objects[i].status=='Completed')
 					objects[i].clear=true;

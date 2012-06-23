@@ -26,11 +26,21 @@ function SHA1 (fileSize)
 	object.H3 = 0x10325476;
 	object.H4 = 0xC3D2E1F0;
 
+	function initialize(temp)
+	{
+		object.H0 = temp.H0;
+		object.H1 = temp.H1;
+		object.H2 = temp.H2;
+		object.H3 = temp.H3;
+		object.H4 = temp.H4;
+	}
+	function exportObject()
+	{
+		return object;
+	}
 	function cvt_hex(val)
 	{
-		var str="";
-		var i;
-		var v;
+		str="";
 
 		for( i=7; i>=0; i-- )
 		{
@@ -41,27 +51,23 @@ function SHA1 (fileSize)
 	};
 	this.getResult=function()
 	{
-		var H0=object.H0;
-		var H1=object.H1;
-		var H2=object.H2;
-		var H3=object.H3;
-		var H4=object.H4;
+		H0=object.H0;
+		H1=object.H1;
+		H2=object.H2;
+		H3=object.H3;
+		H4=object.H4;
 		return (cvt_hex(H0) + cvt_hex(H1) + cvt_hex(H2) + cvt_hex(H3) + cvt_hex(H4)).toLowerCase();
 	};
 
 	function rotate_left(n,s) 
 	{
-		var t4 = ( n<<s ) | (n>>>(32-s));
+		t4 = ( n<<s ) | (n>>>(32-s));
 		return t4;
 	};
  
 	function lsb_hex(val)
 	{
-		var str="";
-		var i;
-		var vh;
-		var vl;
- 
+		str=""; 
 		for( i=0; i<=6; i+=2 )
 		{
 			vh = (val>>>(i*4+4))&0x0f;
@@ -72,9 +78,8 @@ function SHA1 (fileSize)
 	};
  	this.update=function(array,lastPacket)
 	{
-		var blockstart;
-		var i, j;
-		var W = new Array(80);
+		//var i, j;
+		W = new Array(80);
 	
 		/*
 		var H0 = 0x67452301;
@@ -84,18 +89,18 @@ function SHA1 (fileSize)
 		var H4 = 0xC3D2E1F0;
 		*/
 
-		var H0=object.H0;
-		var H1=object.H1;
-		var H2=object.H2;
-		var H3=object.H3;
-		var H4=object.H4;
+		H0=object.H0;
+		H1=object.H1;
+		H2=object.H2;
+		H3=object.H3;
+		H4=object.H4;
 	
 		var A, B, C, D, E;
 		var temp;
 	 
-		var msg_len = array.length;
+		msg_len = array.length;
 	 
-		var word_array = new Array();
+		word_array = new Array();
 		for( i=0; i<msg_len-3; i+=4 ) {
 			j = array[i]<<24 | array[i+1]<<16 |
 			array[i+2]<<8 | array[i+3];
@@ -191,6 +196,7 @@ function SHA1 (fileSize)
 		object.H2=H2;
 		object.H3=H3;
 		object.H4=H4;
+		delete word_array;
 
 	};
 }

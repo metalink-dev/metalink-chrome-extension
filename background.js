@@ -27,6 +27,16 @@ function initializeObjects()
 {
 	if(localStorage.getItem(DOWNLOADS_KEY)!=undefined)
 		objects=JSON.parse(localStorage.getItem(DOWNLOADS_KEY));
+	if(localStorage.getItem(PAUSED_DOWNLOADS_KEY)!=undefined)
+	{
+		tempObjects=JSON.parse(localStorage.getItem(PAUSED_DOWNLOADS_KEY));
+		for(i=0;i<tempObjects.length;i++)
+			if(tempObjects[i]!=undefined)
+			{
+				tempObjects[i].id=objects.length;
+				objects.push(tempObjects[i]);
+			}
+	}
 	currentIndex=objects.length;
 }
 String.prototype.trim = function() {
@@ -162,17 +172,6 @@ function Options(type,title,content,icon)
 	this.content=content;
 	this.icon=icon;
 }
-/*
-function createNotificationInstance(options)
-{
-	if (options.type == 'simple') {
-		return window.webkitNotifications.createNotification(options.icon, options.title, options.content);
-	}
-	else if (options.type == 'html') {
-		return window.webkitNotifications.createHTMLNotification(options.url);
-	}
-}
-*/
 function sendNotification(image, title, message, timeout, showOnFocus)
 {
 	// Default values for optional params
@@ -202,35 +201,21 @@ function printCurrentDownloads(array)
 		console.log(array[i]);
 	return;
 }
-/*
-chrome.tabs.onUpdated.addListener
-(
-	function(tabId,changeInfo,tab){
-		currentTabURL=tab.url;
-	}
-);
-chrome.tabs.onActivated.addListener
-(
-	function(activeInfo){
-		chrome.tabs.get(
-			activeInfo.tabId,
-			function(tab)	{	currentTabURL=tab.url;}
-		);
-	}
-);
-*/
-/*
-function savePausedItem(file,completedPackets)
+function savePausedItem(object)
 {
 	array=JSON.parse(localStorage.getItem(PAUSED_DOWNLOADS_KEY));
 	if(array==undefined)
-		array=new Array;
-	object=new Object();
-	object.file=file;
-	object.completedPackets=completedPackets;
+		array=new Array();
+	for(i=0;i<array.length;i++)
+		if(array[i]==undefined)
+		{
+			array[i]=object;
+			localStorage.setItem(PAUSED_DOWNLOADS_KEY,JSON.stringify(array));
+			return;
+		}
 	array.push(object);
+	localStorage.setItem(PAUSED_DOWNLOADS_KEY,JSON.stringify(array));
 }
-*/
 function saveItem(object)
 {
 	array=JSON.parse(localStorage.getItem(DOWNLOADS_KEY));
@@ -239,6 +224,17 @@ function saveItem(object)
 	array.push(object);
 	localStorage.setItem(DOWNLOADS_KEY,JSON.stringify(array));
 }
+function deletePausedItem(id)
+{
+	array=JSON.parse(localStorage.getItem(PAUSED_DOWNLOADS_KEY));
+	for(i=0;i<array.length;i++)
+		if(array[i]!=undefined)
+			if(array[i].id==id)
+			{
+				delete array[i];
+			}
+	localStorage.setItem(PAUSED_DOWNLOADS_KEY,JSON.stringify(array));
+}
 function getDownloadMessage(url)
 {
 	return 'The Metalink is being downloaded by the Extension. Click on the extension icon to track the progress of the download.';
@@ -246,12 +242,12 @@ function getDownloadMessage(url)
 function resumeDownload(index)
 {
 	object=objects[index];
+	deletePausedItem(index);
 	object.status='Downloading';
 	worker = new Worker('downloader.js');
 	workers[index]=worker;
 
 	object.file.finishedPackets=object.finishedPackets;
-	object.file.md5=object.md5;
 
 	worker.postMessage({'cmd': 'START', 'url': JSON.stringify(object.file)});
 	worker.addEventListener('message',
@@ -272,6 +268,8 @@ function resumeDownload(index)
 						console.log('File Download Completed');
 						object.status='Completed';
 						object.percent=100;
+						delete object.file;
+						delete object.finishedPackets;
 						saveItem(object);
 						break;
 					case 'SAVE':
@@ -291,6 +289,7 @@ function resumeDownload(index)
 						break;
 					case 'SIZE':
 						object.size=data.value;
+						object.file.size=data.value;
 						break;
 					case 'RESTART':
 						object.percent=0;
@@ -299,8 +298,9 @@ function resumeDownload(index)
 						break;
 					case 'PAUSEDSTATE':
 						object.status="Paused";
-						object.finishedPackets=JSON.parse(data.value);
-						object.finishedPackets.sort();
+						object.finishedPackets=data.value;
+						//console.log(object.finishedPackets);
+						savePausedItem(object);
 						break;
 					default:
 						console.log(data.cmd);
@@ -323,6 +323,7 @@ function startDownload(url)
 		worker.postMessage({'cmd': 'START', 'url': JSON.stringify(files[i])});
 		var object=new Object();
 		object.file=files[i];
+		object.id=currentFileIndex;
 		
 		if(files[i].size)
 			object.size=files[i].size;
@@ -369,6 +370,7 @@ function startDownload(url)
 						break;
 					case 'SIZE':
 						object.size=data.value;
+						object.file.size=data.value;
 						break;
 					case 'RESTART':
 						object.percent=0;
@@ -377,9 +379,8 @@ function startDownload(url)
 						break;
 					case 'PAUSEDSTATE':
 						object.status="Paused";
-						tempObject=JSON.parse(data.value);
-						object.finishedPackets=tempObject.finishedPackets;
-						object.md5=tempObject.md5;
+						object.finishedPackets=data.value;
+						savePausedItem(object);
 						break;
 					default:
 						console.log(data.cmd);
