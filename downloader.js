@@ -200,12 +200,14 @@ function verifyFile(file)
 		while(start<fileSize)
 		{
 			blob=f.webkitSlice(start, end);
+			tempArray=new Uint8Array(reader.readAsArrayBuffer(blob));
 			if(end==fileSize)
-				checker.update(new Uint8Array(reader.readAsArrayBuffer(blob)),true);
+				checker.update(tempArray,true);
 			else
-				checker.update(new Uint8Array(reader.readAsArrayBuffer(blob)),false);
+				checker.update(tempArray,false);
 			start+=packetLength;
 			end=min(fileSize,end+packetLength);
+			logMessage(delete tempArray);
 		}
 		logMessage(checker.getResult());
 		if(checker.getResult()==file.hash)
@@ -270,7 +272,7 @@ function downloadPiece(file,threadID,index,endIndex)
 
 		xhrs[threadID].onload	= function(e)
 		{
-			if(xhrs[threadID].status!=200)
+			if(xhrs[threadID].status!=200&&xhrs[threadID].status!=206)
 			{
 				currentURL++;
 				downloadPiece(file,threadID,index,endIndex);
