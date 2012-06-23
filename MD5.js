@@ -23,6 +23,17 @@ function MD5(fileSize)
 	object.d = 0x10325476;
 	var total_len=fileSize;
 
+	function initialize(temp)
+	{
+		object.a = temp.a;
+		object.b = temp.b;
+		object.c = temp.c;
+		object.d = temp.d;
+	}
+	function exportObject()
+	{
+		return object;
+	}
 	function WordToHex(lValue) 
 	{
 			WordToHexValue="",WordToHexValue_temp="",lByte=0,lCount=0;

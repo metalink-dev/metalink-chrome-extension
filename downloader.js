@@ -28,22 +28,18 @@ var numberOfPackets,numberOfPacketsToBeDownloaded,finishedBytes=0,fraction;
 var fileEntry,fileWriter;
 var progress=new Array();
 var xhrs = [];
-var completedPackets=[];
+var completedPackets=-1;
 
-var md5, PAUSE_FLAG=false;
+//var md5, PAUSE_FLAG=false;
 
 function failedState()
 {
-	delete object;
 	self.postMessage({'cmd':'FAILED'});
 	self.close();
 }
-function saveObject(packets,checksum)
+function saveObject(packets)
 {
-	temp=new Object();
-	temp.finishedPackets=packets;
-	temp.md5=md5;
-	self.postMessage({'cmd':'PAUSEDSTATE','value':JSON.stringify(temp)});
+	self.postMessage({'cmd':'PAUSEDSTATE','value':packets});
 	delete temp;
 }
 function saveCommand(url)
@@ -126,6 +122,7 @@ function savePiece(contents,fileName,fileSize,offset)
 		bb.append(contents);
 		fileWriter.seek(offset);
 		fileWriter.write(bb.getBlob());
+		delete bb;
 	}
 	catch (e)
 	{	
@@ -173,15 +170,6 @@ function getURL(urls,required)
 }
 function init_verify(file)
 {
-	/*
-	if(file.md5)
-	{
-		md5=file.md5;
-		logMessage('ok this looks ok');
-		return;
-	}
-	*/
-
 	if(file.hash_type)
 	{
 		switch(file.hash_type)
@@ -195,25 +183,36 @@ function init_verify(file)
 			default:	md5=null;
 		};
 	}
+	return md5;
 }
 function verifyFile(file)
 {
 	verification();
-	logMessage(md5.getResult());
-	try
-	{
-		if(md5)
-		{
-			if(md5.getResult()==file.hash)
-				return true;
-		}
+	checker=init_verify(file);
 
+	if(checker)
+	{
+		packetLength=1024*1024;
+		f=fileEntry.file();
+		reader = new FileReaderSync();
+
+		start=0;end=packetLength;
+		while(start<fileSize)
+		{
+			blob=f.webkitSlice(start, end);
+			if(end==fileSize)
+				checker.update(new Uint8Array(reader.readAsArrayBuffer(blob)),true);
+			else
+				checker.update(new Uint8Array(reader.readAsArrayBuffer(blob)),false);
+			start+=packetLength;
+			end=min(fileSize,end+packetLength);
+		}
+		logMessage(checker.getResult());
+		if(checker.getResult()==file.hash)
+			return true;
 		return false;
 	}
-	catch(e)	
-	{
-		logMessage('Failure to verify');return false;
-	}
+	return true;
 }
 function min(a,b)
 {
@@ -224,17 +223,27 @@ function startDownload()
 	for(i=0;i<numThreads;i++)
 		downloadPiece(file,i,i*divisions,min((i+1)*divisions,numberOfPackets));
 }
+function getFileSize(address)
+{
+	if(address==-1)
+		failedState();
+	client= new XMLHttpRequest();
+	client.open("HEAD", address, false);
+	client.send();
+	logMessage(client.getResponseHeader("Content-Length"));
+	return client.getResponseHeader("Content-Length");
+}
 function downloadPiece(file,threadID,index,endIndex)
 {
 	start=index*packetSize;
 	end=min((index+1)*packetSize-1,file.size-1);
+
 	progress[threadID]=0;
 
-	/*
 	if(file.finishedPackets)
-		if(completedPackets.indexOf(index)!=-1)
+		if(file.finishedPackets>index)
 		{
-			logMessage(index+' packet completed');
+			logMessage(index+' packet downloaded');
 			finishedBytes+=(end-start+1);
 
 			delete start;delete end;
@@ -243,9 +252,8 @@ function downloadPiece(file,threadID,index,endIndex)
 				downloadPiece(file,threadID,index+1,endIndex);
 			return;
 		}
-	*/
 
-	logMessage('Download packet '+index);
+	logMessage('Downloading packet '+index);
 	url=getURL(file.urls,currentURL);
 	if(url==-1)
 	{
@@ -261,28 +269,14 @@ function downloadPiece(file,threadID,index,endIndex)
 
 		xhrs[threadID].onload	= function(e)
 		{
-			
-			/*if(buffer.length!=(end-start+1))
-			{
-				logMessage('Piece '+index+' Verification Failed. Piece Size Mismatch Error. Restarting download from another URL');
-				currentURL+=1;
-				restartState();
-
-				delete start;
-				delete end;
-				delete url;delete buffer;
-
-				downloadPiece(file,threadID,index,endIndex);
-				return;
-			}
-			*/
-
 			savePiece(xhrs[threadID].response,file.fileName,file.size,start);
-			numberOfPacketsToBeDownloaded--;
+
+			//numberOfPacketsToBeDownloaded--;
+
 			finishedBytes+=(end-start+1);
 			progress[threadID]=0;
-			//completedPackets.push(index);
-
+			
+			/*
 			if(md5)
 			{
 				if(index==numberOfPackets-1)
@@ -292,21 +286,27 @@ function downloadPiece(file,threadID,index,endIndex)
 			
 				md5.update(new Uint8Array(this.response),lastPacket);
 			}
+			*/
+			completedPackets=index+1;
+
 			delete start;
 			delete end;
 			delete url;
 			delete xhrs[threadID];
 
+			/*
 			if(PAUSE_FLAG)
 			{
 				saveObject(completedPackets);
 				self.close();
 			}
+			*/
 			
-			if(numberOfPacketsToBeDownloaded==0)
+			if(index+1==numberOfPackets)
 			{
 				if(!verifyFile(file))
 				{
+					logMessage('Verification failed');
 					currentURL++;
 
 					file.finishedPackets=null;
@@ -320,7 +320,7 @@ function downloadPiece(file,threadID,index,endIndex)
 				completeCommand();
 				return;
 			}
-			if(index+1!=endIndex)
+			else
 				downloadPiece(file,threadID,index+1,endIndex);
 			return;
 		};
@@ -355,10 +355,17 @@ function sendProgress()
 function init(file)
 {
 	fileSize=file.size;
-	completedPackets=[];
-	if(file.finishedPackets!=null)
+	if(fileSize==null)
 	{
-		logMessage('Resumed');
+		fileSize=getFileSize(getURL(file.urls,currentURL));
+		file.size=fileSize;
+		updateSize(fileSize);
+	}
+
+	completedPackets=-1;
+	if(file.finishedPackets)
+	{
+		logMessage('RESUMED');
 		getFileEntry(file.fileName,fileSize);
 		completedPackets=file.finishedPackets;
 	}
@@ -369,14 +376,12 @@ function init(file)
 	numberOfPackets=Math.ceil(fileSize/packetSize);
 	divisions=Math.ceil(numberOfPackets/numThreads);
 
-	numberOfPacketsToBeDownloaded=numberOfPackets - completedPackets.length;
+	//numberOfPacketsToBeDownloaded=numberOfPackets - completedPackets.length;
 
 	for(i=0;i<numThreads;i++)
 		progress[i]=0;
 
-	finishedBytes=0
-
-	init_verify(file);
+	finishedBytes=0;
 }
 self.addEventListener('message', 
 	function(e) 	{
@@ -393,8 +398,9 @@ self.addEventListener('message',
 				break;
 
 			case 'PAUSE':
-				logMessage('PAUSING');
-				PAUSE_FLAG=true;
+				logMessage('PAUSED');
+				saveObject(completedPackets);
+				self.close();
 				break;
 		};
 	},
