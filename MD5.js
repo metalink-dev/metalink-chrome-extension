@@ -138,7 +138,7 @@ function MD5(fileSize)
  
 	this.update=function(array,lastPacket)
 	{
-		x=Array();
+		//x=Array();
 		var k,AA,BB,CC,DD,a,b,c,d;
 		S11=7, S12=12, S13=17, S14=22;
 		S21=5, S22=9 , S23=14, S24=20;
