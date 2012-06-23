@@ -192,7 +192,7 @@ function verifyFile(file)
 
 	if(checker)
 	{
-		packetLength=1024*1024;
+		packetLength=5*1024*1024;
 		f=fileEntry.file();
 		reader = new FileReaderSync();
 
