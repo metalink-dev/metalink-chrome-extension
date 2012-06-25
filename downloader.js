@@ -196,7 +196,7 @@ function verifyFile(file)
 		f=fileEntry.file();
 		reader = new FileReaderSync();
 
-		start=0;end=packetLength;
+		start=0;end=min(fileSize,packetLength);
 		while(start<fileSize)
 		{
 			verification((end/file.size*100).toFixed(2));
@@ -222,6 +222,7 @@ function min(a,b)
 }
 function startDownload()
 {
+	restartState();
 	for(i=0;i<numThreads;i++)
 		downloadPiece(file,i,i*divisions,min((i+1)*divisions,numberOfPackets));
 }
