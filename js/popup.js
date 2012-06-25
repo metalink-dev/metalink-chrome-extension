@@ -25,6 +25,56 @@ $(document).ready
 (
 	function()
 	{
+		function getProgressBar(percent,status)
+		{
+			spanElement=$('<span style="width: '+percent+'%" id="progressbarspan"><span></span></span>');
+			switch(status)
+			{
+				case 'Downloading':
+					divContainer=$('<div class="meter animate red" id="progressbardiv"></div>');
+					divContainer.append(spanElement);
+					return divContainer;
+				case 'Paused':
+					divContainer=$('<div class="meter nostripes red" id="progressbardiv"></div>');
+					divContainer.append(spanElement);
+					return divContainer;
+				case 'Verifying':
+					divContainer=$('<div class="meter animate orange" id="progressbardiv"></div>');
+					divContainer.append(spanElement);
+					return divContainer;
+				case 'Completed':
+					divContainer=$('<div class="meter nostripes" id="progressbardiv"></div>');
+					divContainer.append(spanElement);
+					return divContainer;
+				case 'Failed':
+					divContainer=$('<div class="meter nostripes red" id="progressbardiv"></div>');
+					divContainer.append(spanElement);
+					return divContainer;				
+			};
+		}
+		function updateProgressBar(index,percent,status)
+		{
+			div=elements[index];
+			$("#progressbarspan",div).attr('style','width: '+percent+'%');
+			switch(status)
+			{
+				case 'Downloading':
+					$("#progressbardiv",div).attr('class','meter animate red');
+					return;
+				case 'Paused':
+					$("#progressbardiv",div).attr('class','meter nostripes red');
+					return;
+				case 'Verifying':
+					$("#progressbardiv",div).attr('class','meter animate orange');
+					return
+				case 'Completed':
+					$("#progressbardiv",div).attr('class','meter nostripes');
+					return;				
+				case 'Failed':
+					$("#progressbardiv",div).attr('class','meter nostripes red');
+					return;
+			};
+		}
 		function pause_handler()
 		{
 			if($(this).text()=="pause")
@@ -45,12 +95,15 @@ $(document).ready
 		function updateDiv(index,status,progress,fileSize)
 		{
 			div=elements[index];
+			/*
 			if(status=='Verifying'||status=='Restarting')
 				$("progress",div).removeAttr('value');
 			else
 				$("progress",div).attr('value',progress);
+			*/
+			updateProgressBar(index,progress,status);
 
-			if(status=="Completed"||status=='Verifying'||status=='Restarting')
+			if(status=="Completed"||status=='Verifying'||status=='Restarting'||status=="Failed")
 				$("#controls",div).css('display','none');
 
 			$("#status",div).text(status);
@@ -60,7 +113,7 @@ $(document).ready
 		function createDiv(fileName,fileSize,percent,status,hidden)
 		{
 			index=elements.length;
-			var e=$('<progress max="100" value="'+percent+'"></progress>');
+			var e=getProgressBar(percent,status);
 			if(status=='Verifying'||status=='Restarting')
 				e.removeAttr('value');
 			var span=$('<span id="size">Size : '+(fileSize/(1024*1024)).toFixed(2)+' MB	</span><span id="percent">'+percent.toString()+'%</span><span id="status">'+status+'</span>');
@@ -68,7 +121,6 @@ $(document).ready
 			
 
 			var controls=$('<span id="controls"></span>');
-			//controls.css('display','none');
 			if(status=="Downloading"||status=="Paused")
 			{
 				if(status=="Paused")
@@ -132,6 +184,15 @@ $(document).ready
 					continue;
 				count++;
 			}
+			$(".meter > span").each(function() {
+				$(this)
+					.data("origWidth", $(this).width())
+					.width(0)
+					.animate({
+						width: $(this).data("origWidth")
+					}, 900);
+			});
+
 			lastLength=objects.length;
 			$('#count').html(count+"\tDownloads");
 		}

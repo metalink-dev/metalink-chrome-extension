@@ -68,9 +68,9 @@ function updateSize(size)
 {
 	self.postMessage({'cmd':'SIZE', 'value':size});
 }
-function verification()
+function verification(percent)
 {
-	self.postMessage({'cmd':'VERIFICATION'});
+	self.postMessage({'cmd':'VERIFICATION', 'value':percent});
 }
 function deleteFile(fileName,fileSize)
 {
@@ -187,7 +187,7 @@ function init_verify(file)
 }
 function verifyFile(file)
 {
-	verification();
+	verification(0);
 	checker=init_verify(file);
 
 	if(checker)
@@ -199,6 +199,7 @@ function verifyFile(file)
 		start=0;end=packetLength;
 		while(start<fileSize)
 		{
+			verification((end/file.size*100).toFixed(2));
 			blob=f.webkitSlice(start, end);
 			tempArray=new Uint8Array(reader.readAsArrayBuffer(blob));
 			if(end==fileSize)
@@ -207,7 +208,6 @@ function verifyFile(file)
 				checker.update(tempArray,false);
 			start+=packetLength;
 			end=min(fileSize,end+packetLength);
-			logMessage(delete tempArray);
 		}
 		logMessage(checker.getResult());
 		if(checker.getResult()==file.hash)
@@ -256,6 +256,7 @@ function downloadPiece(file,threadID,index,endIndex)
 			return;
 		}
 
+	//logMessage(currentURL);
 	logMessage('Downloading packet '+index);
 	url=getURL(file.urls,currentURL);
 	if(url==-1)
