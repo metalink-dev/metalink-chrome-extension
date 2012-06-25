@@ -150,6 +150,11 @@
 	background-image: -webkit-linear-gradient(#f0a3a3, #f42323);
 }
 
+.blue > span {
+	background-color: #6b77d6;
+	background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, #6b77d6),color-stop(1, #ad7be0));
+	background-image: -webkit-linear-gradient(#6b77d6, #ad7be0);
+}
 .nostripes > span > span, .nostripes > span:after {
 	-webkit-animation: none;
 	-moz-animation: none;

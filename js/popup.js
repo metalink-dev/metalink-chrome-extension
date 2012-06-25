@@ -31,11 +31,11 @@ $(document).ready
 			switch(status)
 			{
 				case 'Downloading':
-					divContainer=$('<div class="meter animate red" id="progressbardiv"></div>');
+					divContainer=$('<div class="meter animate blue" id="progressbardiv"></div>');
 					divContainer.append(spanElement);
 					return divContainer;
 				case 'Paused':
-					divContainer=$('<div class="meter nostripes red" id="progressbardiv"></div>');
+					divContainer=$('<div class="meter nostripes blue" id="progressbardiv"></div>');
 					divContainer.append(spanElement);
 					return divContainer;
 				case 'Verifying':
@@ -59,10 +59,10 @@ $(document).ready
 			switch(status)
 			{
 				case 'Downloading':
-					$("#progressbardiv",div).attr('class','meter animate red');
+					$("#progressbardiv",div).attr('class','meter animate blue');
 					return;
 				case 'Paused':
-					$("#progressbardiv",div).attr('class','meter nostripes red');
+					$("#progressbardiv",div).attr('class','meter nostripes blue');
 					return;
 				case 'Verifying':
 					$("#progressbardiv",div).attr('class','meter animate orange');
@@ -103,7 +103,7 @@ $(document).ready
 			*/
 			updateProgressBar(index,progress,status);
 
-			if(status=="Completed"||status=='Verifying'||status=='Restarting'||status=="Failed")
+			if(status=="Completed"||status=='Verifying'||status=="Failed")
 				$("#controls",div).css('display','none');
 
 			$("#status",div).text(status);
