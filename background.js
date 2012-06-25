@@ -278,13 +278,13 @@ function resumeDownload(index)
 						break;
 					case 'FAILED':
 						object.status='Failed';
-						object.percent=0;
+						object.percent=100;
 						console.log('Download of the file Failed');
 						worker.terminate();
 						break;
 					case 'VERIFICATION':
 						object.status='Verifying';
-						object.percent=100;
+						object.percent=data.value;
 						console.log('Verification Initiated');
 						break;
 					case 'SIZE':
@@ -359,14 +359,14 @@ function startDownload(url)
 						break;
 					case 'FAILED':
 						object.status='Failed';
-						object.percent=0;
+						object.percent=100;
 						console.log('Download of the file Failed');
 						worker.terminate();
 						break;
 					case 'VERIFICATION':
 						object.status='Verifying';
-						object.percent=100;
-						console.log('Verification Initiated');
+						object.percent=data.value;
+						//console.log(data.value);
 						break;
 					case 'SIZE':
 						object.size=data.value;
