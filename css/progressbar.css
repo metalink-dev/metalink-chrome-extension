@@ -32,12 +32,12 @@
 .meter > span {
 	display: block;
 	height: 100%;
-	   -webkit-border-top-right-radius: 8px;
-	-webkit-border-bottom-right-radius: 8px;
+	   -webkit-border-top-right-radius: 20px;
+	-webkit-border-bottom-right-radius: 20px;
 	       -moz-border-radius-topright: 8px;
 	    -moz-border-radius-bottomright: 8px;
-	           border-top-right-radius: 8px;
-	        border-bottom-right-radius: 8px;
+	           border-top-right-radius: 20px;		/*modify this to get the rounded corner */
+	        border-bottom-right-radius: 20px;		/*modify this to get the rounded corner */
 	    -webkit-border-top-left-radius: 20px;
 	 -webkit-border-bottom-left-radius: 20px;
 	        -moz-border-radius-topleft: 20px;
