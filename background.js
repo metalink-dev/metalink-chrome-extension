@@ -24,6 +24,7 @@ const DOWNLOADS_KEY="PREVIOUS_DOWNLOADS";
 const PAUSED_DOWNLOADS_KEY="PAUSED_DOWNLOADS";
 const MBSIZE=1/(1024*1024);
 
+
 function initializeObjects()
 {
 	if(localStorage.getItem(DOWNLOADS_KEY)!=undefined)
@@ -37,6 +38,7 @@ function initializeObjects()
 				tempObjects[i].id=objects.length;
 				objects.push(tempObjects[i]);
 			}
+		localStorage.setItem(PAUSED_DOWNLOADS_KEY,JSON.stringify(tempObjects));
 	}
 	currentIndex=objects.length;
 }
@@ -258,7 +260,7 @@ function getDownloadMessage(url)
 }
 function startFileDownload(index)
 {
-	object=objects[index];
+	var object=objects[index];
 	deleteItem(index,PAUSED_DOWNLOADS_KEY);
 	if(object.status=="Cancelled")
 	{
@@ -266,7 +268,7 @@ function startFileDownload(index)
 		object.downloadedSize=0;
 	}
 	object.status='Downloading';
-	worker = new Worker('downloader.js');
+	var worker = new Worker('downloader.js');
 	workers[index]=worker;
 
 	object.file.finishedPackets=object.finishedPackets;
@@ -281,6 +283,7 @@ function startFileDownload(index)
 					case 'DOWNLOADING':
 						object.percent=Math.max(object.percent,(((data.value)/object.size)*100).toFixed(2));
 						object.downloadedSize=Math.max(object.downloadedSize,((data.value)*MBSIZE).toFixed(2));
+						//console.log(object.downloadedSize+' '+object.id);
 						object.status='Downloading';
 						break;
 					case 'LOG':

@@ -22,6 +22,8 @@ var objects;
 var lastLength;
 const DOWNLOADS_KEY="PREVIOUS_DOWNLOADS";
 const MBSIZE = 1/((1024)*(1024));
+const FILENAME_LENGTH = 25;
+
 $(document).ready
 (
 	function()
@@ -32,7 +34,7 @@ $(document).ready
 		}
 		function getSpan(temp)
 		{
-			e=$('<span id="'+temp+'"></span>');
+			var e=$('<span id="'+temp+'"></span>');
 			return e;
 		}
 		function handleCancelUpdate(div,status)
@@ -42,7 +44,7 @@ $(document).ready
 		}
 		function getProgressBar(percent,status)
 		{
-			spanElement=$('<span style="width: '+percent+'%" id="progressbarspan"><span></span></span>');
+			var spanElement=$('<span style="width: '+percent+'%" id="progressbarspan"><span></span></span>');
 			switch(status)
 			{
 				case 'Downloading':
@@ -149,6 +151,8 @@ $(document).ready
 		}
 		function createDiv(fileName, downloadedSize, fileSize, percent, status, hidden)
 		{
+			fileName=fileName.slice(0,Math.min(fileName.length,FILENAME_LENGTH));
+			console.log(fileName);
 			index=elements.length;
 			var e=getProgressBar(percent,status);
 			var span=$('<span id="info"><span id="size"><span id="downloadedSize">'+downloadedSize+'</span> MB of <span id="fileSize">'+(fileSize*MBSIZE).toFixed(2)+'</span> MB (<span id="percent">'+percent.toString()+'</span>%)</span><span id="status">'+status+'</span></span>');
