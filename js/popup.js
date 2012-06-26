@@ -21,6 +21,7 @@ var backgroundView;
 var objects;
 var lastLength;
 const DOWNLOADS_KEY="PREVIOUS_DOWNLOADS";
+const MBSIZE = 1/((1024)*(1024));
 $(document).ready
 (
 	function()
@@ -92,31 +93,23 @@ $(document).ready
 			div=elements[index];
 			div.hide('slow');
 		}
-		function updateDiv(index,status,progress,fileSize)
+		function updateDiv(index,status, downloadedSize, progress,fileSize)
 		{
 			div=elements[index];
-			/*
-			if(status=='Verifying'||status=='Restarting')
-				$("progress",div).removeAttr('value');
-			else
-				$("progress",div).attr('value',progress);
-			*/
 			updateProgressBar(index,progress,status);
-
 			if(status=="Completed"||status=='Verifying'||status=="Failed")
 				$("#controls",div).css('display','none');
 
 			$("#status",div).text(status);
-			$("#percent",div).text(progress.toString()+"%");
-			$('#size',div).text('Size : '+(fileSize/(1024*1024)).toFixed(2)+' MB');
+			$("#downloadedSize",div).text(downloadedSize);
+			//$("#fileSize",div).text(fileSize);
+			$("#percent",div).text(progress);
 		}
-		function createDiv(fileName,fileSize,percent,status,hidden)
+		function createDiv(fileName, downloadedSize, fileSize, percent, status, hidden)
 		{
 			index=elements.length;
 			var e=getProgressBar(percent,status);
-			if(status=='Verifying'||status=='Restarting')
-				e.removeAttr('value');
-			var span=$('<span id="size">Size : '+(fileSize/(1024*1024)).toFixed(2)+' MB	</span><span id="percent">'+percent.toString()+'%</span><span id="status">'+status+'</span>');
+			var span=$('<span id="size"><span id="downloadedSize">'+downloadedSize+'</span> MB of <span id="fileSize">'+(fileSize*MBSIZE).toFixed(2)+'</span> MB (<span id="percent">'+percent.toString()+'</span>%)</span><span id="status">'+status+'</span>');
 			
 			
 
@@ -160,11 +153,11 @@ $(document).ready
 				if(objects[i].clear)
 					continue;
 				count++;
-				updateDiv(i,objects[i].status,objects[i].percent,objects[i].size);
+				updateDiv(i,objects[i].status,objects[i].downloadedSize, objects[i].percent,objects[i].size);
 			}
 			for(i=lastLength;i<objects.length;i++)
 			{
-				createDiv(objects[i].fileName,objects[i].size,objects[i].percent,objects[i].status,objects[i].clear);
+				createDiv(objects[i].fileName,objects[i].downloadedSize, objects[i].size,objects[i].percent,objects[i].status,objects[i].clear);
 				if(!objects[i].clear)
 					continue;
 				count++;
@@ -179,7 +172,7 @@ $(document).ready
 			var count=0;
 			for(i=0;i<objects.length;i++)
 			{
-				createDiv(objects[i].fileName,objects[i].size,objects[i].percent,objects[i].status,objects[i].clear);
+				createDiv(objects[i].fileName,objects[i].downloadedSize, objects[i].size,objects[i].percent,objects[i].status,objects[i].clear);
 				if(objects[i].clear)
 					continue;
 				count++;

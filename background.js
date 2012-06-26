@@ -22,6 +22,7 @@ var currentIndex=0;
 var currentTabURL = "";
 const DOWNLOADS_KEY="PREVIOUS_DOWNLOADS";
 const PAUSED_DOWNLOADS_KEY="PAUSED_DOWNLOADS";
+const MBSIZE=1/(1024*1024);
 
 function initializeObjects()
 {
@@ -257,9 +258,8 @@ function resumeDownload(index)
 				switch(data.cmd)
 				{
 					case 'DOWNLOADING':
-						if(data.value>object.percent)
-							object.percent=(data.value).toFixed(2);
-						//console.log(object.percent);
+						object.percent=(((data.value)/object.size)*100).toFixed(2);
+						object.downloadedSize=((data.value)*MBSIZE).toFixed(2);
 						object.status='Downloading';
 						break;
 					case 'LOG':
@@ -340,9 +340,8 @@ function startDownload(url)
 				switch(data.cmd)
 				{
 					case 'DOWNLOADING':
-						if(data.value>object.percent)
-							object.percent=(data.value).toFixed(2);
-						//console.log(object.percent);
+						object.percent=(((data.value)/object.size)*100).toFixed(2);
+						object.downloadedSize=((data.value)*MBSIZE).toFixed(2);
 						object.status='Downloading';
 						break;
 					case 'LOG':
