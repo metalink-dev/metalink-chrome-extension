@@ -228,16 +228,19 @@ function saveItem(object)
 function deleteItem(id,KEY)
 {
 	array=JSON.parse(localStorage.getItem(KEY));
-	for(i=0;i<array.length;i++)
+	if(array)
 	{
-		if(array[i]!=undefined)
-			if(array[i].id==id)
-			{
-				console.log('Deleted');
-				delete array[i];
-			}
+		for(i=0;i<array.length;i++)
+		{
+			if(array[i]!=undefined)
+				if(array[i].id==id)
+				{
+					console.log('Deleted');
+					delete array[i];
+				}
+		}
+		localStorage.setItem(KEY,JSON.stringify(array));
 	}
-	localStorage.setItem(KEY,JSON.stringify(array));
 }
 function cancelDownload(index)
 {
