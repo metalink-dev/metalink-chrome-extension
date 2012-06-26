@@ -26,6 +26,20 @@ $(document).ready
 (
 	function()
 	{
+		function hideSpan(temp)
+		{
+			temp.css('display','none');
+		}
+		function getSpan(temp)
+		{
+			e=$('<span id="'+temp+'"></span>');
+			return e;
+		}
+		function handleCancelUpdate(div,status)
+		{
+			if(status=="Completed"||status=="Verifying")
+				$("#cancel",div).css('display','none');
+		}
 		function getProgressBar(percent,status)
 		{
 			spanElement=$('<span style="width: '+percent+'%" id="progressbarspan"><span></span></span>');
@@ -50,7 +64,11 @@ $(document).ready
 				case 'Failed':
 					divContainer=$('<div class="meter nostripes red" id="progressbardiv"></div>');
 					divContainer.append(spanElement);
-					return divContainer;				
+					return divContainer;
+				case 'Cancelled':
+					divContainer=$('<div class="meter nostripes red" id="progressbardiv"></div>');
+					divContainer.append(spanElement);
+					return divContainer;								
 			};
 		}
 		function updateProgressBar(index,percent,status)
@@ -74,6 +92,9 @@ $(document).ready
 				case 'Failed':
 					$("#progressbardiv",div).attr('class','meter nostripes red');
 					return;
+				case 'Cancelled':
+					$("#progressbardiv",div).attr('class','meter nostripes red');
+					return;
 			};
 		}
 		function pause_handler()
@@ -88,6 +109,24 @@ $(document).ready
 			chrome.extension.sendRequest({data: parseInt($(this).attr('href')), cmd:"RESUME"});
 			return false;
 		}
+		function cancel_handler()
+		{
+			if($(this).text()=="cancel")
+			{
+				$(this).text("retry");
+				div=elements[parseInt($(this).attr('href'))];
+				$("#pause",div).css('display','none');
+				$("#info",div).css('display','none');
+				chrome.extension.sendRequest({data: parseInt($(this).attr('href')), cmd:"CANCEL"});
+				return false;
+			}
+			$(this).text("cancel");
+			chrome.extension.sendRequest({data: parseInt($(this).attr('href')), cmd:"RETRY"});
+			div=elements[parseInt($(this).attr('href'))];
+			$("#pause",div).css('display','inline');
+			$("#info",div).css('display','inline');
+			return false;
+		}
 		function removeDiv(index)
 		{
 			div=elements[index];
@@ -98,7 +137,10 @@ $(document).ready
 			div=elements[index];
 			updateProgressBar(index,progress,status);
 			if(status=="Completed"||status=='Verifying'||status=="Failed")
-				$("#controls",div).css('display','none');
+				$("#pause",div).css('display','none');
+			
+			handleCancelUpdate(div,status);
+
 
 			$("#status",div).text(status);
 			$("#downloadedSize",div).text(downloadedSize);
@@ -109,21 +151,29 @@ $(document).ready
 		{
 			index=elements.length;
 			var e=getProgressBar(percent,status);
-			var span=$('<span id="size"><span id="downloadedSize">'+downloadedSize+'</span> MB of <span id="fileSize">'+(fileSize*MBSIZE).toFixed(2)+'</span> MB (<span id="percent">'+percent.toString()+'</span>%)</span><span id="status">'+status+'</span>');
-			
+			var span=$('<span id="info"><span id="size"><span id="downloadedSize">'+downloadedSize+'</span> MB of <span id="fileSize">'+(fileSize*MBSIZE).toFixed(2)+'</span> MB (<span id="percent">'+percent.toString()+'</span>%)</span><span id="status">'+status+'</span></span>');
 			
 
 			var controls=$('<span id="controls"></span>');
-			if(status=="Downloading"||status=="Paused")
+			if(status=="Downloading"||status=="Paused"||status=="Cancelled")
 			{
 				if(status=="Paused")
 					text="resume";
 				else
 					text="pause";
-
-				controls.append(function(){	return $('<a href="'+index+'" class="pause">'+text+'</a>').click(pause_handler);	});
+				
+				if(status=="Cancelled")
+					cancelText="retry";
+				else
+					cancelText="cancel";
+				pauseSpan=getSpan('pause').append(function(){	return $('<a href="'+index+'">'+text+'</a>').click(pause_handler);});;
+				cancelSpan=getSpan('cancel').append(function(){	return $('<a href="'+index+'">'+cancelText+'</a>').click(cancel_handler);});;
+				if(status=="Cancelled")
+					hideSpan(pauseSpan);
+				controls.append(cancelSpan).append(pauseSpan);
 			}
-
+			if(status=="Cancelled")
+				hideSpan(span);
 			var div=$('<div id="download"><span id="fileName">'+fileName+'</span></div>');
 			if(hidden)
 				div.css('display','none');

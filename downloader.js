@@ -32,6 +32,10 @@ var completedPackets=-1;
 
 //var md5, PAUSE_FLAG=false;
 
+function cancelDownload()
+{
+	self.postMessage({'cmd':'CANCELLED'});
+}
 function failedState()
 {
 	self.postMessage({'cmd':'FAILED'});
@@ -222,7 +226,6 @@ function min(a,b)
 }
 function startDownload()
 {
-	restartState();
 	for(i=0;i<numThreads;i++)
 		downloadPiece(file,i,i*divisions,min((i+1)*divisions,numberOfPackets));
 }
@@ -304,14 +307,6 @@ function downloadPiece(file,threadID,index,endIndex)
 			delete end;
 			delete url;
 			delete xhrs[threadID];
-
-			/*
-			if(PAUSE_FLAG)
-			{
-				saveObject(completedPackets);
-				self.close();
-			}
-			*/
 			
 			if(index+1==numberOfPackets)
 			{
@@ -324,6 +319,7 @@ function downloadPiece(file,threadID,index,endIndex)
 					file.finishedPackets=null;
 
 					init(file);
+					restartState();
 					startDownload();
 					return;
 				}
@@ -425,6 +421,13 @@ self.addEventListener('message',
 				saveObject(completedPackets);
 				self.close();
 				break;
+
+			case 'CANCEL':
+				logMessage('CANCELLED');
+				xhrs[0].abort();
+				cancelDownload();
+				deleteFile(file.fileName,fileSize);
+				self.close();
 		};
 	},
 false);
