@@ -225,25 +225,43 @@ function saveItem(object)
 	array.push(object);
 	localStorage.setItem(DOWNLOADS_KEY,JSON.stringify(array));
 }
-function deletePausedItem(id)
+function deleteItem(id,KEY)
 {
-	array=JSON.parse(localStorage.getItem(PAUSED_DOWNLOADS_KEY));
+	array=JSON.parse(localStorage.getItem(KEY));
 	for(i=0;i<array.length;i++)
+	{
 		if(array[i]!=undefined)
 			if(array[i].id==id)
 			{
+				console.log('Deleted');
 				delete array[i];
 			}
-	localStorage.setItem(PAUSED_DOWNLOADS_KEY,JSON.stringify(array));
+	}
+	localStorage.setItem(KEY,JSON.stringify(array));
+}
+function cancelDownload(index)
+{
+	deleteItem(index,PAUSED_DOWNLOADS_KEY);
+	object=objects[index];
+	delete object.file.finishedPackets;
+	delete object.finishedPackets;
+	object.status="Cancelled";
+	object.percent=100;
+	savePausedItem(object);
 }
 function getDownloadMessage(url)
 {
 	return 'The Metalink is being downloaded by the Extension. Click on the extension icon to track the progress of the download.';
 }
-function resumeDownload(index)
+function startFileDownload(index)
 {
 	object=objects[index];
-	deletePausedItem(index);
+	deleteItem(index,PAUSED_DOWNLOADS_KEY);
+	if(object.status=="Cancelled")
+	{
+		object.percent=0;
+		object.downloadedSize=0;
+	}
 	object.status='Downloading';
 	worker = new Worker('downloader.js');
 	workers[index]=worker;
@@ -258,8 +276,8 @@ function resumeDownload(index)
 				switch(data.cmd)
 				{
 					case 'DOWNLOADING':
-						object.percent=(((data.value)/object.size)*100).toFixed(2);
-						object.downloadedSize=((data.value)*MBSIZE).toFixed(2);
+						object.percent=Math.max(object.percent,(((data.value)/object.size)*100).toFixed(2));
+						object.downloadedSize=Math.max(object.downloadedSize,((data.value)*MBSIZE).toFixed(2));
 						object.status='Downloading';
 						break;
 					case 'LOG':
@@ -299,7 +317,14 @@ function resumeDownload(index)
 					case 'PAUSEDSTATE':
 						object.status="Paused";
 						object.finishedPackets=data.value;
-						//console.log(object.finishedPackets);
+						savePausedItem(object);
+						break;
+					case 'CANCELLED':
+						object.status="Cancelled";
+						object.percent=100;
+						object.downloadedSize=0;
+						delete object.finishedPackets;
+						delete object.file.finishedPackets;
 						savePausedItem(object);
 						break;
 					default:
@@ -318,9 +343,6 @@ function startDownload(url)
 	{
 		var currentFileIndex=currentIndex;
 		currentIndex++;
-		worker = new Worker('downloader.js');
-		workers[currentFileIndex]=worker;
-		worker.postMessage({'cmd': 'START', 'url': JSON.stringify(files[i])});
 		var object=new Object();
 		object.file=files[i];
 		object.id=currentFileIndex;
@@ -329,63 +351,12 @@ function startDownload(url)
 			object.size=files[i].size;
 		else
 			object.size="Unknown";
+
 		object.clear=false;
-		object.status='Downloading';	object.percent=0;
+		object.percent=0; object.downloadedSize=0;
 		object.fileName=files[i].fileName;
 		objects[currentFileIndex]=object;
-		worker.addEventListener('message',
-			function(e)
-			{
-				data = e.data;
-				switch(data.cmd)
-				{
-					case 'DOWNLOADING':
-						object.percent=(((data.value)/object.size)*100).toFixed(2);
-						object.downloadedSize=((data.value)*MBSIZE).toFixed(2);
-						object.status='Downloading';
-						break;
-					case 'LOG':
-						console.log(data.value);break;
-					case 'COMPLETE':
-						console.log('File Download Completed');
-						object.status='Completed';
-						object.percent=100;
-						saveItem(object);
-						break;
-					case 'SAVE':
-						console.log('save requested from '+data.value);
-						chrome.experimental.downloads.download({url: data.value,saveAs:true},function(id) {});
-						break;
-					case 'FAILED':
-						object.status='Failed';
-						object.percent=100;
-						console.log('Download of the file Failed');
-						worker.terminate();
-						break;
-					case 'VERIFICATION':
-						object.status='Verifying';
-						object.percent=data.value;
-						//console.log(data.value);
-						break;
-					case 'SIZE':
-						object.size=data.value;
-						object.file.size=data.value;
-						break;
-					case 'RESTART':
-						object.percent=0;
-						object.status="Restarting"
-						console.log('Restarting Download');
-						break;
-					case 'PAUSEDSTATE':
-						object.status="Paused";
-						object.finishedPackets=data.value;
-						savePausedItem(object);
-						break;
-					default:
-						console.log(data.cmd);
-				};
-
-			}, false);
+		startFileDownload(currentFileIndex);
 	}
 }
 initializeObjects();
@@ -415,7 +386,15 @@ chrome.extension.onRequest.addListener
 			case 'PAUSE'	:if(objects[info.data].status=='Downloading')
 						workers[info.data].postMessage({'cmd':'PAUSE'});
 					break;
-			case 'RESUME'	:resumeDownload(info.data);
+			case 'RESUME'	:startFileDownload(info.data);
+					break;
+			case 'CANCEL'	:if(objects[info.data].status=='Downloading')
+						workers[info.data].postMessage({'cmd':'CANCEL'});
+					else
+						cancelDownload(info.data);
+					break;
+			case 'RETRY'	:if(objects[info.data].status=="Cancelled")
+						startFileDownload(info.data);
 					break;
 		};
  	}
