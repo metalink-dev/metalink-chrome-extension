@@ -315,6 +315,7 @@ function downloadPiece(file,threadID,index,endIndex)
 			
 			if(index+1==numberOfPackets)
 			{
+				updateProgress(fileSize);
 				if(!verifyFile(file))
 				{
 					logMessage('Verification failed');
@@ -361,7 +362,7 @@ function sendProgress()
 	for(i=0;i<numThreads;i++)
 		total+=progress[i];
 
-	updateProgress(total*fraction);
+	updateProgress(total);
 }
 function init(file)
 {

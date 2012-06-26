@@ -37,13 +37,13 @@ a:hover{
  *-----------------------------------------------------------------------
  * PROGRESS BAR
  *-----------------------------------------------------------------------
-*/
+
 progress {
 	padding:3px 3px 3px 3px;
 	width:394px;
 	height:30px;
 }
-
+*/
 /*
  *-----------------------------------------------------------------------
  * HEADER
@@ -110,7 +110,6 @@ progress {
 	padding:3px 3px 4px 3px;
 	border-bottom:1px solid #e5e5e5;
 	overflow:hidden;
-	text-align:center;
 }
 #fileName
 {
