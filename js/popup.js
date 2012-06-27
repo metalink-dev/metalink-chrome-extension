@@ -21,6 +21,7 @@ var backgroundView;
 var objects;
 var lastLength;
 const DOWNLOADS_KEY="PREVIOUS_DOWNLOADS";
+const PAUSED_DOWNLOADS_KEY="PAUSED_DOWNLOADS";
 const MBSIZE = 1/((1024)*(1024));
 const FILENAME_LENGTH = 25;
 
@@ -252,7 +253,16 @@ $(document).ready
 					objects[i].clear=true;
 			clearView();
 			return false;
-		});		
+		});
+		$('a.clearAll').click(function()
+		{
+			localStorage.removeItem(DOWNLOADS_KEY);
+			localStorage.removeItem(PAUSED_DOWNLOADS_KEY);
+			for(i=0;i<objects.length;i++)
+				objects[i].clear=true;
+			clearView();
+			return false;
+		});
 		init();
 		setInterval(updateView,1000);
  	}
