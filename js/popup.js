@@ -153,7 +153,7 @@ $(document).ready
 		function createDiv(fileName, downloadedSize, fileSize, percent, status, hidden)
 		{
 			fileName=fileName.slice(0,Math.min(fileName.length,FILENAME_LENGTH));
-			console.log(fileName);
+			//console.log(fileName);
 			index=elements.length;
 			var e=getProgressBar(percent,status);
 			var span=$('<span id="info"><span id="size"><span id="downloadedSize">'+downloadedSize+'</span> MB of <span id="fileSize">'+(fileSize*MBSIZE).toFixed(2)+'</span> MB (<span id="percent">'+percent.toString()+'</span>%)</span><span id="status">'+status+'</span></span>');
@@ -248,14 +248,17 @@ $(document).ready
 		$('a.clear').click(function()
 		{
 			localStorage.removeItem(DOWNLOADS_KEY);
-			items=JSON.parse(localStorage.getItem(PAUSED_DOWNLOADS_KEY));
-			for(i=0;i<items.length;i++)
-				if(items[i].status=="Cancelled")
-					delete items[i];
-			localStorage.setItem(PAUSED_DOWNLOADS_KEY,JSON.stringify(items));
 			for(i=0;i<objects.length;i++)
 				if(objects[i].status=='Completed'||objects[i].status=="Cancelled")
 					objects[i].clear=true;
+
+			items=JSON.parse(localStorage.getItem(PAUSED_DOWNLOADS_KEY));
+			if(items!=undefined)
+				for(i=0;i<items.length;i++)
+					if(items[i])
+						if(items[i].status=="Cancelled")
+							delete items[i];
+			localStorage.setItem(PAUSED_DOWNLOADS_KEY,JSON.stringify(items));
 			clearView();
 			return false;
 		});
