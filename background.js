@@ -344,7 +344,7 @@ function startDownload(url)
 	files=getMetalinkFile(url);
 	if(files==-1)
 		return;
-	sendNotification('http://metalinker.org/images/favicon.ico', 'Download Initiated', getDownloadMessage(fileName), 10000, true);
+	sendNotification('http://metalinker.org/images/favicon.ico', 'Download Initiated', getDownloadMessage(url), 10000, true);
 	for(i=0;i<files.length;i++)
 	{
 		var currentFileIndex=currentIndex;
@@ -366,6 +366,12 @@ function startDownload(url)
 	}
 }
 initializeObjects();
+function parseAndStartDownload(link)
+{
+	endIndex=link.indexOf(';');
+	url=link.substring(1,endIndex-1);
+	startDownload(url);
+}
 chrome.webRequest.onBeforeRequest.addListener
 (
 	function(info)
@@ -378,6 +384,28 @@ chrome.webRequest.onBeforeRequest.addListener
     		urls: ["http://*/*.metalink","http://*/*.meta4","https://*/*.metalink","https://*/*.meta4"]
 	},
   	["blocking"]
+);
+chrome.webRequest.onHeadersReceived.addListener
+(
+	function(info)
+	{
+		links=info.responseHeaders;
+		for(i=0;i<links.length;i++)
+			if(links[i].name=="Link")
+			{
+				link=links[i].value;
+				if(link.indexOf(".meta4")!=-1||link.indexOf(".metalink")!=-1)
+				{
+					parseAndStartDownload(link);
+					return {cancel:true};
+				}
+			}
+		return { cancel: false };
+	},
+	{
+    		urls: ["<all_urls>"]
+	},
+  	["blocking", "responseHeaders"]
 );
 chrome.extension.onRequest.addListener
 (
