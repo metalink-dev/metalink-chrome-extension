@@ -295,6 +295,7 @@ function startFileDownload(index)
 						delete object.file;
 						delete object.finishedPackets;
 						saveItem(object);
+						play(chrome.extension.getURL('trial.mp3'));
 						break;
 					case 'SAVE':
 						console.log('save requested from '+data.value);
@@ -450,3 +451,9 @@ chrome.extension.onRequest.addListener
 		};
  	}
 );
+function play(fileName)
+{
+	var audio = new Audio(fileName);
+	audio.play();
+	return audio;
+}
