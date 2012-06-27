@@ -249,17 +249,8 @@ $(document).ready
 		{
 			localStorage.removeItem(DOWNLOADS_KEY);
 			for(i=0;i<objects.length;i++)
-				if(objects[i].status=='Completed')
+				if(objects[i].status=='Completed'||objects[i].status=="Cancelled")
 					objects[i].clear=true;
-			clearView();
-			return false;
-		});
-		$('a.clearAll').click(function()
-		{
-			localStorage.removeItem(DOWNLOADS_KEY);
-			localStorage.removeItem(PAUSED_DOWNLOADS_KEY);
-			for(i=0;i<objects.length;i++)
-				objects[i].clear=true;
 			clearView();
 			return false;
 		});
