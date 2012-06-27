@@ -385,6 +385,23 @@ chrome.webRequest.onBeforeRequest.addListener
 	},
   	["blocking"]
 );
+/*
+chrome.tabs.onUpdated.addListener
+(
+        function(tabId,changeInfo,tab){
+                currentTabURL=tab.url;
+        }
+);
+chrome.tabs.onActivated.addListener
+(
+        function(activeInfo){
+                chrome.tabs.get(
+                        activeInfo.tabId,
+                        function(tab)   {       currentTabURL=tab.url;}
+                );
+        }
+);
+*/
 chrome.webRequest.onHeadersReceived.addListener
 (
 	function(info)
@@ -397,7 +414,7 @@ chrome.webRequest.onHeadersReceived.addListener
 				if(link.indexOf(".meta4")!=-1||link.indexOf(".metalink")!=-1)
 				{
 					parseAndStartDownload(link);
-					return {cancel:true};
+					return { cancel: true };
 				}
 			}
 		return { cancel: false };

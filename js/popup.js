@@ -248,6 +248,11 @@ $(document).ready
 		$('a.clear').click(function()
 		{
 			localStorage.removeItem(DOWNLOADS_KEY);
+			items=JSON.parse(localStorage.getItem(PAUSED_DOWNLOADS_KEY));
+			for(i=0;i<items.length;i++)
+				if(items[i].status=="Cancelled")
+					delete items[i];
+			localStorage.setItem(PAUSED_DOWNLOADS_KEY,JSON.stringify(items));
 			for(i=0;i<objects.length;i++)
 				if(objects[i].status=='Completed'||objects[i].status=="Cancelled")
 					objects[i].clear=true;
