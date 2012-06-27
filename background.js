@@ -23,7 +23,7 @@ var currentTabURL = "";
 const DOWNLOADS_KEY="PREVIOUS_DOWNLOADS";
 const PAUSED_DOWNLOADS_KEY="PAUSED_DOWNLOADS";
 const MBSIZE=1/(1024*1024);
-
+const AUDIO_FILE_NAME="done.wav";
 
 function initializeObjects()
 {
@@ -32,12 +32,13 @@ function initializeObjects()
 	if(localStorage.getItem(PAUSED_DOWNLOADS_KEY)!=undefined)
 	{
 		tempObjects=JSON.parse(localStorage.getItem(PAUSED_DOWNLOADS_KEY));
-		for(i=0;i<tempObjects.length;i++)
-			if(tempObjects[i]!=undefined)
-			{
-				tempObjects[i].id=objects.length;
-				objects.push(tempObjects[i]);
-			}
+		if(tempObjects)
+			for(i=0;i<tempObjects.length;i++)
+				if(tempObjects[i]!=undefined)
+				{
+					tempObjects[i].id=objects.length;
+					objects.push(tempObjects[i]);
+				}
 		localStorage.setItem(PAUSED_DOWNLOADS_KEY,JSON.stringify(tempObjects));
 	}
 	currentIndex=objects.length;
@@ -295,7 +296,7 @@ function startFileDownload(index)
 						delete object.file;
 						delete object.finishedPackets;
 						saveItem(object);
-						play(chrome.extension.getURL('trial.mp3'));
+						play(chrome.extension.getURL(AUDIO_FILE_NAME));
 						break;
 					case 'SAVE':
 						console.log('save requested from '+data.value);
