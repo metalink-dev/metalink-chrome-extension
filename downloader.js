@@ -22,13 +22,13 @@ self.BlobBuilder = self.BlobBuilder || self.WebKitBlobBuilder || self.MozBlobBui
 
 var currentURL=0;
 var packetSize=1024*1024;
-var fileSize,numThreads=1,divisions;
+var fileSize,numThreads=4,divisions;
 var numberOfPackets,numberOfPacketsToBeDownloaded,finishedBytes=0,fraction;
 
 var fileEntry,fileWriter;
 var progress=new Array();
 var xhrs = [];
-var completedPackets=-1;
+var completedPackets;
 
 //var md5, PAUSE_FLAG=false;
 
@@ -43,7 +43,7 @@ function failedState()
 }
 function saveObject(packets)
 {
-	self.postMessage({'cmd':'PAUSEDSTATE','value':packets});
+	self.postMessage({'cmd':'PAUSEDSTATE','value':JSON.stringify(packets)});
 	delete temp;
 }
 function saveCommand(url)
@@ -174,6 +174,7 @@ function getURL(urls,required)
 }
 function init_verify(file)
 {
+	md5=null;
 	if(file.hash_type)
 	{
 		switch(file.hash_type)
@@ -218,6 +219,7 @@ function verifyFile(file)
 			return true;
 		return false;
 	}
+	verification(100);
 	return true;
 }
 function min(a,b)
@@ -226,7 +228,7 @@ function min(a,b)
 }
 function startDownload()
 {
-	for(i=0;i<numThreads;i++)
+	for(var i=0;i<numThreads;i++)
 		downloadPiece(file,i,i*divisions,min((i+1)*divisions,numberOfPackets));
 }
 function getFileSize(address)
@@ -242,13 +244,13 @@ function getFileSize(address)
 }
 function downloadPiece(file,threadID,index,endIndex)
 {
-	start=index*packetSize;
-	end=min((index+1)*packetSize-1,file.size-1);
+	var start=index*packetSize;
+	var end=min((index+1)*packetSize-1,file.size-1);
 
 	progress[threadID]=0;
 
 	if(file.finishedPackets)
-		if(file.finishedPackets>index)
+		if(file.finishedPackets.indexOf(index)!=-1)
 		{
 			logMessage(index+' packet downloaded');
 			finishedBytes+=(end-start+1);
@@ -262,7 +264,7 @@ function downloadPiece(file,threadID,index,endIndex)
 
 	//logMessage(currentURL);
 	logMessage('Downloading packet '+index);
-	url=getURL(file.urls,currentURL);
+	var url=getURL(file.urls,currentURL);
 	if(url==-1)
 	{
 		failedState();
@@ -285,30 +287,20 @@ function downloadPiece(file,threadID,index,endIndex)
 			}
 
 			savePiece(xhrs[threadID].response,file.fileName,file.size,start);
-			//numberOfPacketsToBeDownloaded--;
+			numberOfPacketsToBeDownloaded--;
 
 			finishedBytes+=(end-start+1);
 			progress[threadID]=0;
 			
-			/*
-			if(md5)
-			{
-				if(index==numberOfPackets-1)
-					lastPacket=true;
-				else
-					lastPacket=false;
-			
-				md5.update(new Uint8Array(this.response),lastPacket);
-			}
-			*/
-			completedPackets=index+1;
+			completedPackets.push(index);
 
 			delete start;
 			delete end;
 			delete url;
 			delete xhrs[threadID];
 			
-			if(index+1==numberOfPackets)
+			//if(index+1==numberOfPackets)
+			if(numberOfPacketsToBeDownloaded==0)
 			{
 				updateProgress(fileSize);
 				if(!verifyFile(file))
@@ -328,7 +320,7 @@ function downloadPiece(file,threadID,index,endIndex)
 				completeCommand();
 				return;
 			}
-			else
+			if(index+1<endIndex)
 				downloadPiece(file,threadID,index+1,endIndex);
 			return;
 		};
@@ -381,7 +373,7 @@ function init(file)
 		}
 	}
 
-	completedPackets=-1;
+	completedPackets=[];
 	if(file.finishedPackets)
 	{
 		logMessage('RESUMED');
@@ -395,7 +387,7 @@ function init(file)
 	numberOfPackets=Math.ceil(fileSize/packetSize);
 	divisions=Math.ceil(numberOfPackets/numThreads);
 
-	//numberOfPacketsToBeDownloaded=numberOfPackets - completedPackets.length;
+	numberOfPacketsToBeDownloaded=numberOfPackets - completedPackets.length;
 
 	for(i=0;i<numThreads;i++)
 		progress[i]=0;
@@ -417,6 +409,13 @@ self.addEventListener('message',
 				break;
 
 			case 'PAUSE':
+				/*for(var k=0;k<numThreads;k++)
+				{
+					xhrs[k].abort();
+					logMessage('Thread '+k+' aborted');
+				}
+				*/
+				xhrs[0].abort();
 				logMessage('PAUSED');
 				saveObject(completedPackets);
 				self.close();
@@ -424,7 +423,8 @@ self.addEventListener('message',
 
 			case 'CANCEL':
 				logMessage('CANCELLED');
-				xhrs[0].abort();
+				for(var i=0;i<numThreads;i++)
+					xhrs[i].abort();
 				cancelDownload();
 				deleteFile(file.fileName,fileSize);
 				self.close();

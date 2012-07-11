@@ -25,6 +25,22 @@ const PAUSED_DOWNLOADS_KEY="PAUSED_DOWNLOADS";
 const MBSIZE=1/(1024*1024);
 const AUDIO_FILE_NAME="done.wav";
 
+//creates context menu for downloading item
+function checkIfMetalink(url)
+{
+	return (url.substr(url.length-6)==".meta4")||(url.substr(url.length-9)==".metalink");
+}
+function clickHandler(e)
+{
+	startDownload(e.linkUrl);
+}
+chrome.contextMenus.create({
+    "title": "Download this file",
+    "contexts": ["link"],
+    "onclick" : clickHandler
+  });
+
+
 function initializeObjects()
 {
 	if(localStorage.getItem(DOWNLOADS_KEY)!=undefined)
@@ -169,6 +185,34 @@ function getMetalinkFile(url)
 		return -1;
 	}
 }
+function getOrdinaryFile(url)
+{
+	var files=new Array();
+	var client= new XMLHttpRequest();
+	client.open("HEAD", url, true);
+	/*
+	client.onprogress=function()
+	{
+		console.log(client.status);
+		if(client.status==302)
+			console.log(client.getAllResponseHeaders());
+	}
+	*/
+	client.onload = 
+	function(e)
+	{
+		var file=new Object();
+		file.fileName= url.substring(url.lastIndexOf('/')+1);
+		file.size=client.getResponseHeader("Content-Length");
+
+		urls=[];
+		urls.push(url);
+		file.urls=urls;
+		files.push(file);
+		downloadFiles(files);
+	}
+	client.send();
+}
 function Options(type,title,content,icon)
 {
 	this.type=type;
@@ -238,7 +282,7 @@ function deleteItem(id,KEY)
 			if(array[i]!=undefined)
 				if(array[i].id==id)
 				{
-					console.log('Deleted');
+					//console.log('Deleted');
 					delete array[i];
 				}
 		}
@@ -255,7 +299,7 @@ function cancelDownload(index)
 	object.percent=100;
 	savePausedItem(object);
 }
-function getDownloadMessage(url)
+function getDownloadMessage()
 {
 	return 'The Metalink is being downloaded by the Extension. Click on the extension icon to track the progress of the download.';
 }
@@ -324,7 +368,7 @@ function startFileDownload(index)
 						break;
 					case 'PAUSEDSTATE':
 						object.status="Paused";
-						object.finishedPackets=data.value;
+						object.finishedPackets=JSON.parse(data.value);
 						savePausedItem(object);
 						break;
 					case 'CANCELLED':
@@ -341,12 +385,9 @@ function startFileDownload(index)
 
 			}, false);
 }
-function startDownload(url)
+function downloadFiles(files)
 {
-	files=getMetalinkFile(url);
-	if(files==-1)
-		return;
-	sendNotification('http://metalinker.org/images/favicon.ico', 'Download Initiated', getDownloadMessage(url), 10000, true);
+	sendNotification('http://metalinker.org/images/favicon.ico', 'Download Initiated', getDownloadMessage(), 5000, true);
 	for(i=0;i<files.length;i++)
 	{
 		var currentFileIndex=currentIndex;
@@ -366,6 +407,17 @@ function startDownload(url)
 		objects[currentFileIndex]=object;
 		startFileDownload(currentFileIndex);
 	}
+}
+function startDownload(url)
+{
+	if(checkIfMetalink(url))
+	{
+		files=getMetalinkFile(url);
+		if(files!=-1)
+			downloadFiles(files);
+		return;
+	}
+	getOrdinaryFile(url);
 }
 initializeObjects();
 function parseAndStartDownload(link)
@@ -403,7 +455,7 @@ chrome.tabs.onActivated.addListener
                 );
         }
 );
-*/
+
 chrome.webRequest.onHeadersReceived.addListener
 (
 	function(info)
@@ -426,6 +478,7 @@ chrome.webRequest.onHeadersReceived.addListener
 	},
   	["blocking", "responseHeaders"]
 );
+*/
 chrome.extension.onRequest.addListener
 (
 	function(info, sender, callback) 

@@ -21,7 +21,7 @@
   "update_url": "http://metalink-chrome-extension.googlecode.com/files/updates.xml",
   "minimum_chrome_version": "16.0.884",
   "permissions": [
-   "storage", "notifications","webRequest", "webRequestBlocking","experimental", "tabs", "http://*/*", "https://*/*", "unlimitedStorage"
+   "contextMenus", "storage", "notifications","webRequest", "webRequestBlocking","experimental", "tabs", "http://*/*", "https://*/*", "unlimitedStorage"
   ],
    "background": {
      "scripts": ["background.js"]
@@ -40,6 +40,7 @@
   ],
 //  "options_page": "options.html",
   "icons": {
+      "16": 	"images/icon.png",
       "128": 	"images/icon.png",
       "48": 	"images/icon.png"
    },
