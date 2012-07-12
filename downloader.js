@@ -21,7 +21,7 @@ self.requestFileSystemSync = self.webkitRequestFileSystemSync || self.requestFil
 self.BlobBuilder = self.BlobBuilder || self.WebKitBlobBuilder || self.MozBlobBuilder;
 
 var currentURL=0;
-var packetSize=1024*1024;
+var packetSize=512*1024;
 var fileSize,numThreads=4,divisions;
 var numberOfPackets,numberOfPacketsToBeDownloaded,finishedBytes=0,fraction;
 
@@ -245,6 +245,8 @@ function getFileSize(address)
 function downloadPiece(file,threadID,index,endIndex)
 {
 	var start=index*packetSize;
+	if(start>file.size-1)
+		return;
 	var end=min((index+1)*packetSize-1,file.size-1);
 
 	progress[threadID]=0;
@@ -355,6 +357,9 @@ function sendProgress()
 function init(file)
 {
 	fileSize=file.size;
+	numThreads=file.count_threads;
+	//logMessage(numThreads);
+
 	if(fileSize==null)
 	{
 		while(true)

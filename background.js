@@ -24,6 +24,15 @@ const DOWNLOADS_KEY="PREVIOUS_DOWNLOADS";
 const PAUSED_DOWNLOADS_KEY="PAUSED_DOWNLOADS";
 const MBSIZE=1/(1024*1024);
 const AUDIO_FILE_NAME="done.wav";
+const NUMBER_OF_THREADS="metalinkDownloadsPerServer";
+const saveAsOption="metalinkSaveAsEnabled";
+
+function getBooleanOption(option)
+{
+	if(localStorage[option]==undefined||localStorage[option]=="false")
+		return false;
+	return true;
+}
 
 //creates context menu for downloading item
 function checkIfMetalink(url)
@@ -312,6 +321,11 @@ function startFileDownload(index)
 		object.percent=0;
 		object.downloadedSize=0;
 	}
+
+	if(localStorage[NUMBER_OF_THREADS]!=undefined)
+		object.file.count_threads=parseInt(localStorage[NUMBER_OF_THREADS]);
+	else
+		object.file.count_threads=1;
 	object.status='Downloading';
 	var worker = new Worker('downloader.js');
 	workers[index]=worker;
@@ -344,7 +358,10 @@ function startFileDownload(index)
 						break;
 					case 'SAVE':
 						console.log('save requested from '+data.value);
-						chrome.experimental.downloads.download({url: data.value,saveAs:true},function(id) {});
+						if(getBooleanOption(saveAsOption))
+							chrome.experimental.downloads.download({url: data.value,saveAs:'true'},function(id) {});
+						else
+							chrome.experimental.downloads.download({url: data.value},function(id) {});
 						break;
 					case 'FAILED':
 						object.status='Failed';
