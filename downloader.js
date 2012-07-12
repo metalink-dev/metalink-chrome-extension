@@ -134,7 +134,7 @@ function savePiece(contents,fileName,fileSize,offset)
 	}
 }
 
-function getFileSytemURL(fileName,fileSize)
+function getFileSystemURL(fileName,fileSize)
 {
 	return fileEntry.toURL();
 }
@@ -317,7 +317,7 @@ function downloadPiece(file,threadID,index,endIndex)
 					startDownload();
 					return;
 				}
-				fileSystemURL=getFileSytemURL(file.fileName,file.size);
+				fileSystemURL=getFileSystemURL(file.fileName,file.size);
 				saveCommand(fileSystemURL);
 				completeCommand();
 				return;

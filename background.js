@@ -359,7 +359,7 @@ function startFileDownload(index)
 					case 'SAVE':
 						console.log('save requested from '+data.value);
 						if(getBooleanOption(saveAsOption))
-							chrome.experimental.downloads.download({url: data.value,saveAs:'true'},function(id) {});
+							chrome.experimental.downloads.download({url: data.value,saveAs:true},function(id) {});
 						else
 							chrome.experimental.downloads.download({url: data.value},function(id) {});
 						break;
