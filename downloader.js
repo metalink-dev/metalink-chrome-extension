@@ -428,8 +428,10 @@ self.addEventListener('message',
 
 			case 'CANCEL':
 				logMessage('CANCELLED');
+				/*
 				for(var i=0;i<numThreads;i++)
 					xhrs[i].abort();
+				*/
 				cancelDownload();
 				deleteFile(file.fileName,fileSize);
 				self.close();
