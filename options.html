@@ -24,13 +24,33 @@
 							<label for="metalinkSaveAsEnabled" class='optionsDescription'  message="options_clipNotificationEnabledDescription">When enabled, you will be prompted to choose the download location for the file to be downloaded. Save As dialogs make it easier for you to save the metalinks at relevant locations.</label>
 							</td>
 						</tr>
+						 <tr id="clipStyleContainer">
+						    <td>
+						      <label for="clipStyle" message="options_clipStyle">Downloads Per Server</label>
+						    </td>
+						    <td>
+						      <select id="metalinkDownloadsPerServer" name="clipStyle">
+							<option value="1">1</option>
+							<option value="2">2</option>
+							<option value="3">3</option>
+							<option value="4">4</option>
+							<option value="5">5</option>
+							<option value="6">6</option>
+							<option value="7">7</option>
+							<option value="8">8</option>
+							<option value="9">9</option>
+							<option value="10">10</option>
+						      </select>
+							<div class='optionsDescription'>This sets of the number of simultaneous connections to the server. More connections take more processing power, but download at a faster rate. </div>
+						    </td>
+						  </tr>
 					</table>
 				</div>
 				<div>
 					<a href="http://metalinker.org/" message="options_eventLogLink">Metalinks</a><br>
 						<span class="optionsDescription" message="options_eventLogDescription">If you are in need of support or want to report bugs, you may post them <a href="http://code.google.com/p/metalink-chrome-extension/issues/list">here</a>.</span>
 				</div>
-				<div id="versionInfo" message="options_buildId">Version Number: 0.2.1</div>
+				<div id="versionInfo" message="options_buildId">Version Number: 0.4.2</div>
 				</form>
 			</div>
 		</div>
