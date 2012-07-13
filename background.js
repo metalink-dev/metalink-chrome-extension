@@ -312,6 +312,26 @@ function getDownloadMessage()
 {
 	return 'The Metalink is being downloaded by the Extension. Click on the extension icon to track the progress of the download.';
 }
+function tryDownload(fileName,url)
+{
+	codeString=
+	'try {'+'\n'+
+		'var downloadFileHyperLink = document.createElementNS("http://www.w3.org/1999/xhtml", "a");'+'\n'+
+	 	'downloadFileHyperLink.href = "'+url+'";'+'\n'+
+		'downloadFileHyperLink.download = "'+fileName+'";'+'\n'+
+		'var event = document.createEvent("MouseEvents");'+'\n'+
+		'event.initMouseEvent('+'\n'+
+				'"click", true, false, self, 0, 0, 0, 0, 0'+'\n'+
+				', false, false, false, false, 0, null'+'\n'+
+				');'+'\n'+
+		'downloadFileHyperLink.dispatchEvent(event);'+'\n'+
+        '}'+'\n'+
+	'catch (exc) {'+'\n'+
+            'alertExceptionDetails(exc);'+'\n'+
+        '}'+'\n';
+	console.log(codeString);
+	chrome.tabs.executeScript(null, { code:codeString  });
+}
 function startFileDownload(index)
 {
 	var object=objects[index];
@@ -358,10 +378,13 @@ function startFileDownload(index)
 						break;
 					case 'SAVE':
 						console.log('save requested from '+data.value);
+						tryDownload(object.file.fileName,data.value);
+						/*
 						if(getBooleanOption(saveAsOption))
-							chrome.experimental.downloads.download({url: data.value,saveAs:true},function(id) {});
+							chrome.experimental.downloads.download({filename:object.file.fileName,url: data.value,saveAs:true},function(id) {});
 						else
 							chrome.experimental.downloads.download({url: data.value},function(id) {});
+						*/
 						break;
 					case 'FAILED':
 						object.status='Failed';
