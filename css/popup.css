@@ -17,6 +17,7 @@
 //	along with this program.  If not, see <http://www.gnu.org/licenses/>
 */
 body {
+    overflow-x:hidden;
     background:#fff;
     color:#000;
     font-family: "helvetica neue",arial,sans-serif;
@@ -54,8 +55,8 @@ progress {
     border-bottom:1px solid #e5e5e5;
     margin-bottom:3px;
     overflow:hidden;
-    padding:3px 3px 4px 3px;
-    width:394px;
+    padding:3px 15px 4px 7px;
+    /*width:394px;*/
 }
 
 #logo {
@@ -97,11 +98,12 @@ progress {
 */
 
 #body {
-    overflow:hidden;
+    overflow:auto;
     width:400px;
     /*border-bottom:1px solid #e5e5e5;*/
-    margin-bottom:3px;
-    padding:3px 3px 4px 3px;
+    margin-bottom:1px;
+    padding:3px 15px 4px 7px;
+    overflow:hidden;
 }
 
 #download
