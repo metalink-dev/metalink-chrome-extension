@@ -19,7 +19,7 @@
 .meter { 
 	height: 20px;  /* Can be anything */
 	position: relative;
-	margin: 20px 0 5px 0; /* Just for demo spacing */
+	margin: 20px 0px 5px 0px; /* Just for demo spacing */
 	background: #555;
 	-moz-border-radius: 25px;
 	-webkit-border-radius: 25px;

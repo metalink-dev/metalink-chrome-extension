@@ -6,6 +6,7 @@ var checkboxValues =
  var selectValues = 
 {
     metalinkDownloadsPerServer: "metalinkDownloadsPerServer",
+    metalinkConcurrentDownloads:"metalinkConcurrentDownloads"
 };
 function getFromLocalStorage(option)
 {
@@ -59,5 +60,5 @@ function selectChanged(e)
         if (optionName)
                 saveToLocalStorage(optionName, this.value);
 	
-	console.log(this.value);
+	//console.log(this.value);
 }

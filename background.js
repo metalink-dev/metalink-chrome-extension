@@ -19,13 +19,21 @@
 var objects = [];
 var workers = [];
 var currentIndex=0;
+var currentDownloads=0;
 var currentTabURL = "";
+var waitingQueue = [];
+
 const DOWNLOADS_KEY="PREVIOUS_DOWNLOADS";
 const PAUSED_DOWNLOADS_KEY="PAUSED_DOWNLOADS";
 const MBSIZE=1/(1024*1024);
 const AUDIO_FILE_NAME="done.wav";
 const NUMBER_OF_THREADS="metalinkDownloadsPerServer";
 const saveAsOption="metalinkSaveAsEnabled";
+
+if(localStorage["metalinkConcurrentDownloads"]==undefined)
+	localStorage["metalinkConcurrentDownloads"]=1;
+
+const MAX_CONCURRENT_DOWNLOADS=localStorage["metalinkConcurrentDownloads"];
 
 function getBooleanOption(option)
 {
@@ -73,6 +81,7 @@ String.prototype.trim = function() {
 }
 function displayParameters(files)
 {
+	console.log(files.length);
 	for(i=0;i<files.length;i++)
 	{
 		file=files[i];
@@ -84,8 +93,9 @@ function displayParameters(files)
 		console.log(file.hash);
 		console.log(file.piece_type);
 		console.log(file.piece_length);
-		for(k=0;k<files[i].pieces.length;k++)
-			console.log(files[i].pieces[k]);
+		if(file.pieces)
+			for(k=0;k<file.pieces.length;k++)
+				console.log(files[i].pieces[k]);
 	}
 }
 function extractContents(contents, type)
@@ -329,11 +339,42 @@ function tryDownload(fileName,url)
 	'catch (exc) {'+'\n'+
             'alertExceptionDetails(exc);'+'\n'+
         '}'+'\n';
-	console.log(codeString);
+	//console.log(codeString);
 	chrome.tabs.executeScript(null, { code:codeString  });
+	window.webkitURL.revokeObjectURL(url);
+}
+function pushToWaitingQueue(index)
+{
+	var object=objects[index];
+	//console.log(index);
+	object.status="Waiting";
+	waitingQueue.push(index);
+}
+function checkWithinDownloadsLimit(current)
+{
+	if(current<=MAX_CONCURRENT_DOWNLOADS)
+		return true;
+	return false;
+}
+function startNextDownloadFromWaitingQueue()
+{
+	currentDownloads--;
+	if(waitingQueue.length>0)
+	{
+		index=waitingQueue[0];
+		waitingQueue=waitingQueue.slice(1,waitingQueue.length);
+		startFileDownload(index);
+	}
+	return;
 }
 function startFileDownload(index)
 {
+	if(!checkWithinDownloadsLimit(currentDownloads+1))
+	{
+		pushToWaitingQueue(index);
+		return;
+	}
+	currentDownloads++;
 	var object=objects[index];
 	deleteItem(index,PAUSED_DOWNLOADS_KEY);
 	if(object.status=="Cancelled")
@@ -375,6 +416,7 @@ function startFileDownload(index)
 						delete object.finishedPackets;
 						saveItem(object);
 						play(chrome.extension.getURL(AUDIO_FILE_NAME));
+						startNextDownloadFromWaitingQueue();
 						break;
 					case 'SAVE':
 						console.log('save requested from '+data.value);
@@ -391,6 +433,7 @@ function startFileDownload(index)
 						object.percent=100;
 						console.log('Download of the file Failed');
 						worker.terminate();
+						startNextDownloadFromWaitingQueue();
 						break;
 					case 'VERIFICATION':
 						object.status='Verifying';
@@ -410,6 +453,7 @@ function startFileDownload(index)
 						object.status="Paused";
 						object.finishedPackets=JSON.parse(data.value);
 						savePausedItem(object);
+						startNextDownloadFromWaitingQueue();
 						break;
 					case 'CANCELLED':
 						object.status="Cancelled";
@@ -418,6 +462,7 @@ function startFileDownload(index)
 						delete object.finishedPackets;
 						delete object.file.finishedPackets;
 						savePausedItem(object);
+						startNextDownloadFromWaitingQueue();
 						break;
 					default:
 						console.log(data.cmd);
@@ -428,7 +473,7 @@ function startFileDownload(index)
 function downloadFiles(files)
 {
 	sendNotification('http://metalinker.org/images/favicon.ico', 'Download Initiated', getDownloadMessage(), 5000, true);
-	for(i=0;i<files.length;i++)
+	for(var i=0;i<files.length;i++)
 	{
 		var currentFileIndex=currentIndex;
 		currentIndex++;
@@ -442,9 +487,10 @@ function downloadFiles(files)
 			object.size="Unknown";
 
 		object.clear=false;
-		object.percent=0; object.downloadedSize=0;
+		object.percent=0; object.downloadedSize=0; object.status="Waiting";
 		object.fileName=files[i].fileName;
 		objects[currentFileIndex]=object;
+		savePausedItem(object);
 		startFileDownload(currentFileIndex);
 	}
 }
@@ -453,13 +499,21 @@ function startDownload(url)
 	if(checkIfMetalink(url))
 	{
 		files=getMetalinkFile(url);
+		//displayParameters(files);
 		if(files!=-1)
 			downloadFiles(files);
 		return;
 	}
 	getOrdinaryFile(url);
 }
+function initializeDownloads()
+{
+	for(var i=0;i<objects.length;i++)
+		if(objects[i].status=="Waiting")
+			startFileDownload(i);
+}
 initializeObjects();
+initializeDownloads();
 function parseAndStartDownload(link)
 {
 	endIndex=link.indexOf(';');

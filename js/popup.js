@@ -38,10 +38,18 @@ $(document).ready
 			var e=$('<span id="'+temp+'"></span>');
 			return e;
 		}
-		function handleCancelUpdate(div,status)
+		function handleControlUpdate(div,status)
 		{
-			if(status=="Completed"||status=="Verifying")
-				$("#cancel",div).css('display','none');
+			if(status=="Completed"||status=="Verifying"||status=="Waiting"||status=="Failed")
+			{
+				if($("#controls",div).css('display')!='none')
+					$("#controls",div).css('display','none');
+			}
+			else
+			{
+				if($("#controls",div).css('display')=='none')
+					$("#controls",div).show();
+			}
 		}
 		function getProgressBar(percent,status)
 		{
@@ -71,7 +79,11 @@ $(document).ready
 				case 'Cancelled':
 					divContainer=$('<div class="meter nostripes red" id="progressbardiv"></div>');
 					divContainer.append(spanElement);
-					return divContainer;								
+					return divContainer;
+				case 'Waiting':
+					divContainer=$('<div class="meter nostripes blue" id="progressbardiv"></div>');
+					divContainer.append(spanElement);
+					return divContainer;
 			};
 		}
 		function updateProgressBar(index,percent,status)
@@ -97,6 +109,9 @@ $(document).ready
 					return;
 				case 'Cancelled':
 					$("#progressbardiv",div).attr('class','meter nostripes red');
+					return;
+				case 'Waiting':
+					$("#progressbardiv",div).attr('class','meter nostripes blue');
 					return;
 			};
 		}
@@ -139,15 +154,11 @@ $(document).ready
 		{
 			div=elements[index];
 			updateProgressBar(index,progress,status);
-			if(status=="Completed"||status=='Verifying'||status=="Failed")
-				$("#pause",div).css('display','none');
-			
-			handleCancelUpdate(div,status);
+			handleControlUpdate(div,status);
 
 
 			$("#status",div).text(status);
 			$("#downloadedSize",div).text(downloadedSize);
-			//$("#fileSize",div).text(fileSize);
 			$("#percent",div).text(progress);
 		}
 		function createDiv(fileName, downloadedSize, fileSize, percent, status, hidden)
@@ -171,9 +182,9 @@ $(document).ready
 					cancelText="retry";
 				else
 					cancelText="cancel";
-				pauseSpan=getSpan('pause').append(function(){	return $('<a href="'+index+'">'+text+'</a>').click(pause_handler);});;
-				cancelSpan=getSpan('cancel').append(function(){	return $('<a href="'+index+'">'+cancelText+'</a>').click(cancel_handler);});;
-				if(status=="Cancelled")
+				var pauseSpan=getSpan('pause').append(function(){	return $('<a href="'+index+'">'+text+'</a>').click(pause_handler);});;
+				var cancelSpan=getSpan('cancel').append(function(){	return $('<a href="'+index+'">'+cancelText+'</a>').click(cancel_handler);});;
+				if(status=="Cancelled"||status=="Waiting")
 					hideSpan(pauseSpan);
 				controls.append(cancelSpan).append(pauseSpan);
 			}
@@ -189,7 +200,7 @@ $(document).ready
 		function clearView()
 		{
 			count=0;
-			for(i=0;i<lastLength;i++)
+			for(var i=0;i<lastLength;i++)
 			{
 				if(objects[i].clear)
 				{
@@ -203,14 +214,14 @@ $(document).ready
 		function updateView()
 		{
 			var count=0;
-			for(i=0;i<lastLength;i++)
+			for(var i=0;i<lastLength;i++)
 			{
 				if(objects[i].clear)
 					continue;
 				count++;
 				updateDiv(i,objects[i].status,objects[i].downloadedSize, objects[i].percent,objects[i].size);
 			}
-			for(i=lastLength;i<objects.length;i++)
+			for(var i=lastLength;i<objects.length;i++)
 			{
 				createDiv(objects[i].fileName,objects[i].downloadedSize, objects[i].size,objects[i].percent,objects[i].status,objects[i].clear);
 				if(!objects[i].clear)
@@ -225,7 +236,7 @@ $(document).ready
 			backgroundView=chrome.extension.getBackgroundPage();
 			objects=backgroundView.objects;
 			var count=0;
-			for(i=0;i<objects.length;i++)
+			for(var i=0;i<objects.length;i++)
 			{
 				createDiv(objects[i].fileName,objects[i].downloadedSize, objects[i].size,objects[i].percent,objects[i].status,objects[i].clear);
 				if(objects[i].clear)
@@ -249,7 +260,7 @@ $(document).ready
 		{
 			localStorage.removeItem(DOWNLOADS_KEY);
 			for(i=0;i<objects.length;i++)
-				if(objects[i].status=='Completed'||objects[i].status=="Cancelled")
+				if(objects[i].status=='Completed'||objects[i].status=="Cancelled"||objects[i].status=="Failed")
 					objects[i].clear=true;
 
 			items=JSON.parse(localStorage.getItem(PAUSED_DOWNLOADS_KEY));

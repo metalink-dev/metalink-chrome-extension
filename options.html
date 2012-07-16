@@ -24,7 +24,7 @@
 							<label for="metalinkSaveAsEnabled" class='optionsDescription'  message="options_clipNotificationEnabledDescription">When enabled, you will be prompted to choose the download location for the file to be downloaded. Save As dialogs make it easier for you to save the metalinks at relevant locations.</label>
 							</td>
 						</tr>
-						 <tr id="clipStyleContainer">
+						<tr id="clipStyleContainer">
 						    <td>
 						      <label for="clipStyle" message="options_clipStyle">Downloads Per Server</label>
 						    </td>
@@ -42,6 +42,21 @@
 							<option value="10">10</option>
 						      </select>
 							<div class='optionsDescription'>This sets of the number of simultaneous connections to the server. More connections take more processing power, but download at a faster rate. </div>
+						    </td>
+						  </tr>
+						  <tr id="clipStyleContainer">
+						    <td>
+						      <label for="clipStyle" message="options_clipStyle">Maximum Concurrent Downloads</label>
+						    </td>
+						    <td>
+						      <select id="metalinkConcurrentDownloads" name="clipStyle">
+							<option value="1">1</option>
+							<option value="2">2</option>
+							<option value="3">3</option>
+							<option value="4">4</option>
+							<option value="5">5</option>
+						      </select>
+							<div class='optionsDescription'>This sets of the number of files that can be downloaded simultaneously. Each download requires atleast one thread to download files. This option requires restart.</div>
 						    </td>
 						  </tr>
 					</table>
