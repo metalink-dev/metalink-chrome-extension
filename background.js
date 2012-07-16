@@ -23,15 +23,19 @@ var currentDownloads=0;
 var currentTabURL = "";
 var waitingQueue = [];
 
-const DOWNLOADS_KEY="PREVIOUS_DOWNLOADS";
-const PAUSED_DOWNLOADS_KEY="PAUSED_DOWNLOADS";
-const MBSIZE=1/(1024*1024);
-const AUDIO_FILE_NAME="done.wav";
-const NUMBER_OF_THREADS="metalinkDownloadsPerServer";
-const saveAsOption="metalinkSaveAsEnabled";
+const DOWNLOADS_KEY		="PREVIOUS_DOWNLOADS";
+const PAUSED_DOWNLOADS_KEY	="PAUSED_DOWNLOADS";
+const MBSIZE			=1/(1024*1024);
+const AUDIO_FILE_NAME		="done.wav";
+const NUMBER_OF_THREADS		="metalinkDownloadsPerServer";
+const CHUNK_SIZE		="metalinkChunkSize";
+const saveAsOption		="metalinkSaveAsEnabled";
 
 if(localStorage["metalinkConcurrentDownloads"]==undefined)
 	localStorage["metalinkConcurrentDownloads"]=1;
+
+if(localStorage[CHUNK_SIZE]==undefined)
+	localStorage[CHUNK_SIZE]=256;
 
 const MAX_CONCURRENT_DOWNLOADS=localStorage["metalinkConcurrentDownloads"];
 
@@ -383,10 +387,17 @@ function startFileDownload(index)
 		object.downloadedSize=0;
 	}
 
+
+	//this sets the numver of threads that can run in parallel
 	if(localStorage[NUMBER_OF_THREADS]!=undefined)
 		object.file.count_threads=parseInt(localStorage[NUMBER_OF_THREADS]);
 	else
 		object.file.count_threads=1;
+
+	if(object.file.chunkSize==undefined)
+		object.file.chunkSize=parseInt(localStorage[CHUNK_SIZE]);
+
+
 	object.status='Downloading';
 	var worker = new Worker('downloader.js');
 	workers[index]=worker;

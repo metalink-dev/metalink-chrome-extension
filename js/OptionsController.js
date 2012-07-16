@@ -5,8 +5,9 @@ var checkboxValues =
 };
  var selectValues = 
 {
-    metalinkDownloadsPerServer: "metalinkDownloadsPerServer",
-    metalinkConcurrentDownloads:"metalinkConcurrentDownloads"
+    metalinkDownloadsPerServer	: "metalinkDownloadsPerServer",
+    metalinkConcurrentDownloads	: "metalinkConcurrentDownloads",
+    metalinkChunkSize		: "metalinkChunkSize"
 };
 function getFromLocalStorage(option)
 {

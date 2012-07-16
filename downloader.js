@@ -359,6 +359,7 @@ function init(file)
 {
 	fileSize=file.size;
 	numThreads=file.count_threads;
+	packetSize=file.chunkSize*1024;
 	//logMessage(numThreads);
 
 	if(fileSize==null)
