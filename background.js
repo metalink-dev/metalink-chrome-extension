@@ -225,7 +225,7 @@ function getOrdinaryFile(url)
 	function(e)
 	{
 		var file=new Object();
-		file.fileName= url.substring(url.lastIndexOf('/')+1);
+		file.fileName= url.substring(Math.max(url.lastIndexOf('/'),url.lastIndexOf('='))+1);
 		file.size=client.getResponseHeader("Content-Length");
 
 		urls=[];
