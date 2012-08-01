@@ -234,8 +234,9 @@ function getOrdinaryFile(url)
 		var files=new Array();var temp;var file=new Object();
 		if(client.getResponseHeader("Content-Disposition")!=null)
 			temp=client.getResponseHeader("Content-Disposition")
-		if(temp.indexOf('filename')!=-1)
-			file.fileName=temp.substring(temp.indexOf('filename')+('filename').length+2,temp.length-1).trim();
+		if(temp)
+			if(temp.indexOf('filename')!=-1)
+				file.fileName=temp.substring(temp.indexOf('filename')+('filename').length+2,temp.length-1).trim();
 		if(file.fileName==null)
 			file.fileName= url.substring(url.lastIndexOf('/')+1);
 		file.size=client.getResponseHeader("Content-Length");
