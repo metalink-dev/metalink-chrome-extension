@@ -49,6 +49,7 @@ function getBooleanOption(option)
 //creates context menu for downloading item
 function checkIfMetalink(url)
 {
+	
 	return (url.substr(url.length-6)==".meta4")||(url.substr(url.length-9)==".metalink");
 }
 function clickHandler(e)
@@ -210,7 +211,6 @@ function getMetalinkFile(url)
 }
 function getOrdinaryFile(url)
 {
-	var files=new Array();
 	var client= new XMLHttpRequest();
 	client.open("HEAD", url, true);
 	/*
@@ -224,10 +224,21 @@ function getOrdinaryFile(url)
 	client.onload = 
 	function(e)
 	{
-		var file=new Object();
-		file.fileName= url.substring(Math.max(url.lastIndexOf('/'),url.lastIndexOf('='))+1);
+		if(client.getResponseHeader('Content-Type').indexOf('metalink')!=-1)
+		{
+			var files=getMetalinkFile(url);
+			if(files!=-1)
+				downloadFiles(files);
+			return;
+		}
+		var files=new Array();var temp;var file=new Object();
+		if(client.getResponseHeader("Content-Disposition")!=null)
+			temp=client.getResponseHeader("Content-Disposition")
+		if(temp.indexOf('filename')!=-1)
+			file.fileName=temp.substring(temp.indexOf('filename')+('filename').length+2,temp.length-1).trim();
+		if(file.fileName==null)
+			file.fileName= url.substring(url.lastIndexOf('/')+1);
 		file.size=client.getResponseHeader("Content-Length");
-
 		urls=[];
 		urls.push(url);
 		file.urls=urls;
@@ -509,7 +520,7 @@ function startDownload(url)
 {
 	if(checkIfMetalink(url))
 	{
-		files=getMetalinkFile(url);
+		var files=getMetalinkFile(url);
 		//displayParameters(files);
 		if(files!=-1)
 			downloadFiles(files);
