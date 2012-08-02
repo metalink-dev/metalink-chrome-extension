@@ -426,6 +426,7 @@ function startFileDownload(index)
 					case 'DOWNLOADING':
 						object.percent=Math.max(object.percent,(((data.value)/object.size)*100).toFixed(2));
 						object.downloadedSize=Math.max(object.downloadedSize,((data.value)*MBSIZE).toFixed(2));
+						object.speed=data.speed.toFixed(2);
 						//console.log(object.downloadedSize+' '+object.id);
 						object.status='Downloading';
 						break;
