@@ -29,6 +29,7 @@ var fileEntry,fileWriter;
 var progress=new Array();
 var xhrs = [];
 var completedPackets;
+var previous_total=0;
 
 //var md5, PAUSE_FLAG=false;
 
@@ -64,9 +65,9 @@ function logMessage(msg)
 {
 	self.postMessage({'cmd':'LOG', 'value':msg});
 }
-function updateProgress(completed)
+function updateProgress(completed,speed)
 {
-	self.postMessage({'cmd':'DOWNLOADING', 'value':completed});
+	self.postMessage({'cmd':'DOWNLOADING', 'value':completed, 'speed':speed});
 }
 function updateSize(size)
 {
@@ -352,8 +353,8 @@ function sendProgress()
 	total=finishedBytes;
 	for(i=0;i<numThreads;i++)
 		total+=progress[i];
-
-	updateProgress(total);
+	updateProgress(total,(total-previous_total)/1024);
+	previous_total=total;
 }
 function init(file)
 {

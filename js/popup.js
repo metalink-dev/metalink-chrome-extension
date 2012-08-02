@@ -150,7 +150,7 @@ $(document).ready
 			div=elements[index];
 			div.hide('slow');
 		}
-		function updateDiv(index,status, downloadedSize, progress,fileSize)
+		function updateDiv(index,status, downloadedSize, progress, speed, fileSize)
 		{
 			div=elements[index];
 			updateProgressBar(index,progress,status);
@@ -159,15 +159,15 @@ $(document).ready
 
 			$("#status",div).text(status);
 			$("#downloadedSize",div).text(downloadedSize);
-			$("#percent",div).text(progress);
+			$("#percent",div).text(progress+'% at '+speed+'kBps');
 		}
-		function createDiv(fileName, downloadedSize, fileSize, percent, status, hidden)
+		function createDiv(fileName, downloadedSize, fileSize, percent, status, speed, hidden)
 		{
 			fileName=fileName.slice(0,Math.min(fileName.length,FILENAME_LENGTH));
 			//console.log(fileName);
 			index=elements.length;
 			var e=getProgressBar(percent,status);
-			var span=$('<span id="info"><span id="size"><span id="downloadedSize">'+downloadedSize+'</span> MB of <span id="fileSize">'+(fileSize*MBSIZE).toFixed(2)+'</span> MB (<span id="percent">'+percent.toString()+'</span>%)</span><span id="status">'+status+'</span></span>');
+			var span=$('<span id="info"><span id="size"><span id="downloadedSize">'+downloadedSize+'</span> MB of <span id="fileSize">'+(fileSize*MBSIZE).toFixed(2)+'</span> MB (<span id="percent">'+percent.toString()+'% at '+speed+'kBps</span>)</span><span id="status">'+status+'</span></span>');
 			
 
 			var controls=$('<span id="controls"></span>');
@@ -219,11 +219,11 @@ $(document).ready
 				if(objects[i].clear)
 					continue;
 				count++;
-				updateDiv(i,objects[i].status,objects[i].downloadedSize, objects[i].percent,objects[i].size);
+				updateDiv(i,objects[i].status,objects[i].downloadedSize, objects[i].percent,objects[i].speed, objects[i].size);
 			}
 			for(var i=lastLength;i<objects.length;i++)
 			{
-				createDiv(objects[i].fileName,objects[i].downloadedSize, objects[i].size,objects[i].percent,objects[i].status,objects[i].clear);
+				createDiv(objects[i].fileName,objects[i].downloadedSize, objects[i].size,objects[i].percent,objects[i].status,objects[i].speed, objects[i].clear);
 				if(!objects[i].clear)
 					continue;
 				count++;
@@ -238,7 +238,7 @@ $(document).ready
 			var count=0;
 			for(var i=0;i<objects.length;i++)
 			{
-				createDiv(objects[i].fileName,objects[i].downloadedSize, objects[i].size,objects[i].percent,objects[i].status,objects[i].clear);
+				createDiv(objects[i].fileName,objects[i].downloadedSize, objects[i].size,objects[i].percent,objects[i].status,objects[i].speed, objects[i].clear);
 				if(objects[i].clear)
 					continue;
 				count++;
