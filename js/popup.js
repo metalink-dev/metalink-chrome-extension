@@ -20,23 +20,93 @@ var elements=[];
 var backgroundView;
 var objects;
 var lastLength;
-const DOWNLOADS_KEY="PREVIOUS_DOWNLOADS";
-const PAUSED_DOWNLOADS_KEY="PAUSED_DOWNLOADS";
-const MBSIZE = 1/((1024)*(1024));
-const FILENAME_LENGTH = 25;
+
+
+const DOWNLOADS_KEY		="PREVIOUS_DOWNLOADS";
+const PAUSED_DOWNLOADS_KEY	="PAUSED_DOWNLOADS";
+const MBSIZE 			=1/((1024)*(1024));
+const FILENAME_LENGTH 		= 25;
+const SPEED_SPAN_TAG		='speed';
+const HYPEN_TAG			='hypen';
+const DOWNLOADED_SIZE_SPAN	='downloadedSize';
+const OF_TAG			='of_span';
+const FILESIZE_TAG		='fileSize';
+const PERCENT_TAG		='percent';
+const STATUS_TAG		='status';
+const INFO_TAG			='info';
+const LEFT_INFO_TAG		='left_info';
+
 
 $(document).ready
 (
 	function()
 	{
-		function hideSpan(temp)
+		function hideSpan(temp,flag)
 		{
-			temp.css('display','none');
+			if(flag)
+				temp.css('display','none');
+			else
+				temp.show();
 		}
 		function getSpan(temp)
 		{
 			var e=$('<span id="'+temp+'"></span>');
 			return e;
+		}
+		function getSpanWithContent(temp,content)
+		{
+			var e=$('<span id="'+temp+'">'+content+'</span>');
+			return e;
+		}
+		function getFilesizeContent(filesize)
+		{
+			temp=filesize*MBSIZE;
+			return (temp<1024)?(temp.toFixed(1)+' MB'):((temp/1024).toFixed(1)+' GB');
+		}
+		function getSpeedContent(speed)
+		{
+			return (speed<1024)?(speed.toFixed()+' KB/s'):((speed/1024).toFixed()+' MB/s');
+		}
+		function getProgressContent(progress)
+		{
+			return (progress.toFixed(1)+'%');
+		}
+		function updateStatus(div,status)
+		{
+			temp=$('#'+STATUS_TAG,div);
+			if(temp.text()!=status)
+				temp.text(status);
+		}
+		/*
+		function updateStatusAndHide(div,status)
+		{
+			//
+			//
+		}
+		function updateStatusAndShow(div,status)
+		{
+			hideSpan($('#'+LEFT_INFO_TAG,div),false);
+			updateStatus(div,status);
+		}
+		*/
+		function getStatusInfo(downloadedSize,fileSize,percent,speed,status)
+		{
+			var statusSpan		=getSpanWithContent(STATUS_TAG,	status);
+
+			if(status=="Completed")
+				return getSpan(INFO_TAG).append(statusSpan);
+			
+			var left_info		=getSpan(LEFT_INFO_TAG);
+			var speedSpan		=getSpanWithContent(SPEED_SPAN_TAG,getSpeedContent(speed));
+			var hypen1		=getSpanWithContent(HYPEN_TAG,' - ');
+			var hypen2		=getSpanWithContent(HYPEN_TAG,' - ');
+			var downloadedSizeSpan	=getSpanWithContent(DOWNLOADED_SIZE_SPAN,getFilesizeContent(downloadedSize));
+			var ofSpan		=getSpanWithContent(OF_TAG,' of ');
+			var fileSizeSpan	=getSpanWithContent(FILESIZE_TAG,getFilesizeContent(fileSize));
+			var percentSpan		=getSpanWithContent(PERCENT_TAG,getProgressContent(percent));
+
+			left_info.append(speedSpan).append(hypen1).append(downloadedSizeSpan).append(ofSpan).append(fileSizeSpan).append(hypen2).append(percentSpan);
+			return getSpan(INFO_TAG).append(left_info).append(statusSpan);
 		}
 		function handleControlUpdate(div,status)
 		{
@@ -133,15 +203,18 @@ $(document).ready
 			{
 				$(this).text("retry");
 				div=elements[parseInt($(this).attr('href'))];
-				$("#pause",div).css('display','none');
-				$("#info",div).css('display','none');
+				hideSpan($('#pause',div),true);
+				hideSpan($('#'+LEFT_INFO_TAG,div),true);
+				$('#status',div).text('Cancelled');
 				chrome.extension.sendRequest({data: parseInt($(this).attr('href')), cmd:"CANCEL"});
 				return false;
 			}
 			$(this).text("cancel");
 			chrome.extension.sendRequest({data: parseInt($(this).attr('href')), cmd:"RETRY"});
 			div=elements[parseInt($(this).attr('href'))];
-			$("#pause",div).css('display','inline');
+			hideSpan($('#pause',div),false);
+			hideSpan($('#'+LEFT_INFO_TAG,div),false);
+			$('#status',div).text('Downloading');
 			$("#info",div).css('display','inline');
 			return false;
 		}
@@ -157,17 +230,18 @@ $(document).ready
 			handleControlUpdate(div,status);
 
 
-			$("#status",div).text(status);
-			$("#downloadedSize",div).text(downloadedSize);
-			$("#percent",div).text(progress+'% at '+speed+'kBps');
+			$("#downloadedSize",div).text(getFilesizeContent(downloadedSize));
+			$("#percent",div).text(getProgressContent(progress));
+			$('#'+SPEED_SPAN_TAG,div).text(getSpeedContent(speed));
+			updateStatus(div,status);
+			console.log(status);
 		}
 		function createDiv(fileName, downloadedSize, fileSize, percent, status, speed, hidden)
 		{
 			fileName=fileName.slice(0,Math.min(fileName.length,FILENAME_LENGTH));
-			//console.log(fileName);
 			index=elements.length;
 			var e=getProgressBar(percent,status);
-			var span=$('<span id="info"><span id="size"><span id="downloadedSize">'+downloadedSize+'</span> MB of <span id="fileSize">'+(fileSize*MBSIZE).toFixed(2)+'</span> MB (<span id="percent">'+percent.toString()+'% at '+speed+'kBps</span>)</span><span id="status">'+status+'</span></span>');
+			var span=getStatusInfo(downloadedSize,fileSize,percent,speed,status);
 			
 
 			var controls=$('<span id="controls"></span>');
@@ -185,11 +259,11 @@ $(document).ready
 				var pauseSpan=getSpan('pause').append(function(){	return $('<a href="'+index+'">'+text+'</a>').click(pause_handler);});;
 				var cancelSpan=getSpan('cancel').append(function(){	return $('<a href="'+index+'">'+cancelText+'</a>').click(cancel_handler);});;
 				if(status=="Cancelled"||status=="Waiting")
-					hideSpan(pauseSpan);
+					hideSpan(pauseSpan,true);
 				controls.append(cancelSpan).append(pauseSpan);
 			}
 			if(status=="Cancelled")
-				hideSpan(span);
+				hideSpan(span,true);
 			var div=$('<div id="download"><span id="fileName">'+fileName+'</span></div>');
 			if(hidden)
 				div.css('display','none');
@@ -272,6 +346,11 @@ $(document).ready
 			localStorage.setItem(PAUSED_DOWNLOADS_KEY,JSON.stringify(items));
 			clearView();
 			return false;
+		});
+		$('a.options').click(function()
+		{
+			optionsURL=chrome.extension.getURL('options.html');
+			window.open(optionsURL);
 		});
 		init();
 		setInterval(updateView,1000);
