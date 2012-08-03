@@ -510,7 +510,7 @@ function downloadFiles(files)
 			object.size="Unknown";
 
 		object.clear=false;
-		object.percent=0; object.downloadedSize=0; object.status="Waiting";
+		object.percent=0; object.downloadedSize=0; object.status="Waiting"; object.speed=0;
 		object.fileName=files[i].fileName;
 		objects[currentFileIndex]=object;
 		savePausedItem(object);

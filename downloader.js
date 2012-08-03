@@ -197,7 +197,7 @@ function init_verify(file)
 }
 function verifyFile(file)
 {
-	verification(0);
+	verification(0.0);
 	checker=init_verify(file);
 
 	if(checker)
@@ -209,7 +209,7 @@ function verifyFile(file)
 		start=0;end=min(fileSize,packetLength);
 		while(start<fileSize)
 		{
-			verification((end/file.size*100).toFixed(1));
+			verification((end/file.size*100));
 			blob=f.webkitSlice(start, end);
 			tempArray=new Uint8Array(reader.readAsArrayBuffer(blob));
 			if(end==fileSize)
@@ -224,7 +224,7 @@ function verifyFile(file)
 			return true;
 		return false;
 	}
-	verification(100);
+	verification(100.0);
 	return true;
 }
 function min(a,b)
