@@ -69,7 +69,7 @@ $(document).ready
 		}
 		function getProgressContent(progress)
 		{
-			return (progress.toFixed(1)+'%');
+			return (progress.toFixed()+'%');
 		}
 		function updateStatus(div,status)
 		{
@@ -234,7 +234,6 @@ $(document).ready
 			$("#percent",div).text(getProgressContent(progress));
 			$('#'+SPEED_SPAN_TAG,div).text(getSpeedContent(speed));
 			updateStatus(div,status);
-			console.log(status);
 		}
 		function createDiv(fileName, downloadedSize, fileSize, percent, status, speed, hidden)
 		{
