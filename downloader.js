@@ -209,7 +209,7 @@ function verifyFile(file)
 		start=0;end=min(fileSize,packetLength);
 		while(start<fileSize)
 		{
-			verification((end/file.size*100).toFixed(2));
+			verification((end/file.size*100).toFixed(1));
 			blob=f.webkitSlice(start, end);
 			tempArray=new Uint8Array(reader.readAsArrayBuffer(blob));
 			if(end==fileSize)
