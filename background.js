@@ -238,7 +238,12 @@ function getOrdinaryFile(url)
 			if(temp.indexOf('filename')!=-1)
 				file.fileName=temp.substring(temp.indexOf('filename')+('filename').length+2,temp.length-1).trim();
 		if(file.fileName==null)
-			file.fileName= url.substring(url.lastIndexOf('/')+1);
+		{
+			temp = url.substring(url.lastIndexOf('/')+1);
+			if(temp.indexOf('?')!=-1)
+				temp=temp.substring(0,temp.indexOf('?'));
+			file.fileName=temp;
+		}
 		file.size=client.getResponseHeader("Content-Length");
 		urls=[];
 		urls.push(url);
