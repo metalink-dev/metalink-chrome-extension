@@ -8,7 +8,7 @@
    "contextMenus", "storage", "notifications","webRequest", "webRequestBlocking", "tabs", "http://*/*", "https://*/*", "unlimitedStorage"
   ],
    "background": {
-     "scripts": ["background.js"]
+     "scripts": ["js/FileName.js", "background.js"]
   },
   "browser_action": {
     "default_icon": "images/icon.png",
