@@ -232,6 +232,9 @@ function getOrdinaryFile(url)
 			return;
 		}
 		var files=new Array();var temp;var file=new Object();
+		var MIMEType=client.getResponseHeader('content-type');
+		if(MIMEType.indexOf(';')!=-1)
+			MIMEType=MIMEType.substring(0,MIMEType.indexOf(';'));
 		if(client.getResponseHeader("Content-Disposition")!=null)
 			temp=client.getResponseHeader("Content-Disposition")
 		if(temp)
@@ -242,6 +245,8 @@ function getOrdinaryFile(url)
 			temp = url.substring(url.lastIndexOf('/')+1);
 			if(temp.indexOf('?')!=-1)
 				temp=temp.substring(0,temp.indexOf('?'));
+			if(!checkIfFilenameHasExtension(temp))
+				temp=temp+getExtensionFromMIMEType(MIMEType);
 			file.fileName=temp;
 		}
 		file.size=client.getResponseHeader("Content-Length");
