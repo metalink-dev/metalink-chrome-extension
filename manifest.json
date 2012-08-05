@@ -1,7 +1,7 @@
 {
   "name": "Metalink Downloader",
   "description": "Download Metalinks from a Page",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "update_url": "http://metalink-chrome-extension.googlecode.com/files/updates.xml",
   "minimum_chrome_version": "16.0.884",
   "permissions": [
