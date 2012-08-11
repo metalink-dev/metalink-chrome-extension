@@ -22,6 +22,8 @@ var currentIndex=0;
 var currentDownloads=0;
 var currentTabURL = "";
 var waitingQueue = [];
+window.resolveLocalFileSystemURL = window.resolveLocalFileSystemURL || window.webkitResolveLocalFileSystemURL;
+
 
 const DOWNLOADS_KEY		="PREVIOUS_DOWNLOADS";
 const PAUSED_DOWNLOADS_KEY	="PAUSED_DOWNLOADS";
@@ -30,6 +32,7 @@ const AUDIO_FILE_NAME		="done.wav";
 const NUMBER_OF_THREADS		="metalinkDownloadsPerServer";
 const CHUNK_SIZE		="metalinkChunkSize";
 const saveAsOption		="metalinkSaveAsEnabled";
+
 
 if(localStorage["metalinkConcurrentDownloads"]==undefined)
 	localStorage["metalinkConcurrentDownloads"]=1;
@@ -348,12 +351,15 @@ function getDownloadMessage()
 {
 	return 'The Metalink is being downloaded by the Extension. Click on the extension icon to track the progress of the download.';
 }
-function tryDownload(fileName,url)
+function downloadThis()
 {
-	codeString=
-	'try {'+'\n'+
+	console.log('tab created');
+}
+function getCodeString(fileName,URL)
+{
+	return 'try {'+'\n'+
 		'var downloadFileHyperLink = document.createElementNS("http://www.w3.org/1999/xhtml", "a");'+'\n'+
-	 	'downloadFileHyperLink.href = "'+url+'";'+'\n'+
+	 	'downloadFileHyperLink.href = "'+URL+'";'+'\n'+
 		'downloadFileHyperLink.download = "'+fileName+'";'+'\n'+
 		'var event = document.createEvent("MouseEvents");'+'\n'+
 		'event.initMouseEvent('+'\n'+
@@ -365,9 +371,44 @@ function tryDownload(fileName,url)
 	'catch (exc) {'+'\n'+
             'alertExceptionDetails(exc);'+'\n'+
         '}'+'\n';
-	//console.log(codeString);
-	chrome.tabs.executeScript(null, { code:codeString  });
-	window.webkitURL.revokeObjectURL(url);
+}
+function tryDownload(fileName,fileSystemURL)
+{
+	if(currentTabURL.indexOf('chrome://')!=-1)
+	{	
+		chrome.tabs.create({url:'http://www.google.co.in'},
+		function()
+			{
+				window.resolveLocalFileSystemURL(fileSystemURL, 
+				function(fileEntry) 
+				{
+					fileEntry.file(
+						function(f)
+						{	
+							codeString=getCodeString(fileName,window.webkitURL.createObjectURL(f));
+							chrome.tabs.executeScript(null, { code:codeString  });
+						}
+					);
+				});
+			}
+		);
+		return;
+	}
+	else
+	{
+		window.resolveLocalFileSystemURL(fileSystemURL, 
+				function(fileEntry) 
+				{
+					fileEntry.file(
+						function(f)
+						{	
+							codeString=getCodeString(fileName,window.webkitURL.createObjectURL(f));
+							chrome.tabs.executeScript(null, { code:codeString  });
+						}
+					);
+				});
+		//window.webkitURL.revokeObjectURL(url);
+	}
 }
 function pushToWaitingQueue(index)
 {
@@ -452,8 +493,8 @@ function startFileDownload(index)
 						startNextDownloadFromWaitingQueue();
 						break;
 					case 'SAVE':
-						console.log('save requested from '+data.value);
-						tryDownload(object.file.fileName,data.value);
+						console.log('save requested from '+data.fileSystemURL);
+						tryDownload(object.file.fileName,data.fileSystemURL);
 						/*
 						if(getBooleanOption(saveAsOption))
 							chrome.experimental.downloads.download({filename:object.file.fileName,url: data.value,saveAs:true},function(id) {});
@@ -566,7 +607,6 @@ chrome.webRequest.onBeforeRequest.addListener
 	},
   	["blocking"]
 );
-/*
 chrome.tabs.onUpdated.addListener
 (
         function(tabId,changeInfo,tab){
@@ -582,7 +622,7 @@ chrome.tabs.onActivated.addListener
                 );
         }
 );
-
+/*
 chrome.webRequest.onHeadersReceived.addListener
 (
 	function(info)

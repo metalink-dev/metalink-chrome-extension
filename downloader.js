@@ -49,9 +49,9 @@ function saveObject(packets)
 	self.postMessage({'cmd':'PAUSEDSTATE','value':JSON.stringify(packets)});
 	delete temp;
 }
-function saveCommand(url)
+function saveCommand(fileSystemURL,blobURL)
 {
-	self.postMessage({'cmd':'SAVE', 'value':url});
+	self.postMessage({'cmd':'SAVE', 'fileSystemURL':fileSystemURL, 'blobURL':blobURL});
 }
 function completeCommand()
 {
@@ -283,7 +283,7 @@ function downloadPiece(file,threadID,index,endIndex)
 		xhrs[threadID].open('GET', url, true);
 		xhrs[threadID].responseType = 'arraybuffer';
 		xhrs[threadID].setRequestHeader("Range", "bytes=" + start + "-" + end);
-		xhrs[threadID].setRequestHeader("Cache-Control", "no-cache");
+		//xhrs[threadID].setRequestHeader("Cache-Control", "no-cache");
 		xhrs[threadID].onload	= function(e)
 		{
 			if(xhrs[threadID].status!=200&&xhrs[threadID].status!=206)
@@ -324,7 +324,8 @@ function downloadPiece(file,threadID,index,endIndex)
 				}
 				fileSystemURL=getFileSystemURL(file.fileName,file.size);
 				//logMessage(self.webkitURL.createObjectURL(fileEntry.file()));
-				saveCommand(self.webkitURL.createObjectURL(fileEntry.file()));
+				//
+				saveCommand(fileSystemURL,self.webkitURL.createObjectURL(fileEntry.file()));
 				completeCommand();
 				return;
 			}
