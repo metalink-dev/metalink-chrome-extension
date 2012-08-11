@@ -376,7 +376,7 @@ function tryDownload(fileName,fileSystemURL)
 {
 	if(currentTabURL.indexOf('chrome://')!=-1)
 	{	
-		chrome.tabs.create({url:'http://www.google.co.in'},
+		chrome.tabs.create({url:'http://www.google.com'},
 		function()
 			{
 				window.resolveLocalFileSystemURL(fileSystemURL, 
