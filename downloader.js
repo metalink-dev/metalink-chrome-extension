@@ -283,7 +283,7 @@ function downloadPiece(file,threadID,index,endIndex)
 		xhrs[threadID].open('GET', url, true);
 		xhrs[threadID].responseType = 'arraybuffer';
 		xhrs[threadID].setRequestHeader("Range", "bytes=" + start + "-" + end);
-		//xhrs[threadID].setRequestHeader("Cache-Control", "no-cache");
+		xhrs[threadID].setRequestHeader("Cache-Control", "no-cache");
 		xhrs[threadID].onload	= function(e)
 		{
 			if(xhrs[threadID].status!=200&&xhrs[threadID].status!=206)

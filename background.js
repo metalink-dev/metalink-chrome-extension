@@ -351,10 +351,6 @@ function getDownloadMessage()
 {
 	return 'The Metalink is being downloaded by the Extension. Click on the extension icon to track the progress of the download.';
 }
-function downloadThis()
-{
-	console.log('tab created');
-}
 function getCodeString(fileName,URL)
 {
 	return 'try {'+'\n'+
@@ -376,7 +372,7 @@ function tryDownload(fileName,fileSystemURL)
 {
 	if(currentTabURL.indexOf('chrome://')!=-1)
 	{	
-		chrome.tabs.create({url:'http://www.google.com'},
+		chrome.tabs.create({url:'http://www.metalinker.org/'},
 		function()
 			{
 				window.resolveLocalFileSystemURL(fileSystemURL, 
