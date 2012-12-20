@@ -355,10 +355,7 @@ function downloadPiece(file,threadID,index,endIndex)
 }
 function sendProgress()
 {
-	total=finishedBytes;
-	for(i=0;i<numThreads;i++)
-		total+=progress[i];
-	updateProgress(total);
+        updateProgress(finishedBytes);
 }
 function init(file)
 {
